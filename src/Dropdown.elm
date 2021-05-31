@@ -833,7 +833,7 @@ update msg (Dropdown dropdown) =
                     | show = True
                     , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
                 }
-            , Task.attempt GotFocus (Dom.focus (dropdown.id ++ "-buttons"))
+            , Task.attempt GotFocus (Dom.focus (dropdown.id ++ "-button"))
             , FocusIn
             )
 
