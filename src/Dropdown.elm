@@ -9,7 +9,7 @@ module Dropdown exposing
     , menuPlacement, menuSpacing
     , maxHeight, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
     , FilterType(..), filterType
-    , removeSelected
+    , removeSelected, setSelected
     , selected, selectedOption
     , OutMsg(..), Msg, update
     , view
@@ -29,10 +29,10 @@ state, using them in your `view` code will have no effect. They should
 therefore be used when you [init](#init) the Dropdown, or in your `update`
 function where model changes can be captured.
 
-The affected functions are, [id](#id), [filterType](#filterType) and
-[removeSelected](#removeSelected), along with all the functions for
-[setting the menu options](#setting-options). Each function or section has a
-warning documenting this restriction where it's applicable.
+The affected functions are, [id](#id), [filterType](#filterType),
+[removeSelected](#removeSelected) & [setSelected](#setSelected), along with all
+the functions for [setting the menu options](#setting-options). Each function
+or section has a warning documenting this restriction where it's applicable.
 
 All other functions can be used safely within `view` code.
 
@@ -95,9 +95,9 @@ Filtering is currently case insensitive.
 @docs FilterType, filterType
 
 
-### Extra
+### Selected Option
 
-@docs removeSelected
+@docs removeSelected, setSelected
 
 
 ## Query
@@ -673,6 +673,32 @@ removeSelected (Dropdown dropdown) (Dropdown fromDropdown) =
                 { fromDropdown
                     | options =
                         List.filter (\( _, _, option_ ) -> option /= option_) fromDropdown.options
+                }
+
+
+{-| Set the selected option - it must exist in the list of
+[options originally provided](#setting-options).
+
+**Warning**
+
+This function changes the internal state, and so needs to be used where the
+state change can be captured. This is likely to be your `update` function.
+
+If you use this in your `view` code it will have no effect.
+
+-}
+setSelected : Maybe option -> Dropdown option -> Dropdown option
+setSelected maybeOption (Dropdown dropdown) =
+    case maybeOption of
+        Nothing ->
+            Dropdown { dropdown | selected = Nothing }
+
+        Just option ->
+            Dropdown
+                { dropdown
+                    | selected =
+                        List.filter (\( _, _, option_ ) -> option_ == option) dropdown.options
+                            |> List.head
                 }
 
 

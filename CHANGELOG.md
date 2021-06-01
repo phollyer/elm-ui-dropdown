@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Nothing at the moment.
 
+## [1.2.0] - 2021-06-01
+
+### Added
+
+- `setSelected` function to enable setting the selected option manually.
+
 ## [1.1.1] - 2021-06-01
 
 ### Changed
@@ -36,7 +42,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.1.1...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.2.0...HEAD
+[1.2.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.0.1...1.1.0
 [1.0.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.0.0...1.0.1
