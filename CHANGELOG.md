@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Nothing at the moment.
 
+## [1.1.1] - 2021-06-01
+
+### Changed
+
+- Clicking the Button when the menu is open will now close the menu.
+
 ## [1.1.0] - 2021-06-01
 
 ### Added
@@ -30,7 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.1.0...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.1.1...HEAD
+[1.1.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.0.1...1.1.0
 [1.0.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/phollyer/elm-ui-dropdown/releases/tag/v1.0.0

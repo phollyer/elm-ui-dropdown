@@ -3,7 +3,7 @@
     "name": "phollyer/elm-ui-dropdown",
     "summary": "A simple dropdown component for elm-ui",
     "license": "BSD-3-Clause",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "exposed-modules": [
         "Dropdown"
     ],
