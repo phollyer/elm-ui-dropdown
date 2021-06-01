@@ -127,6 +127,7 @@ import Element.Input as Input exposing (Placeholder)
 import Html.Attributes as Attr
 import Html.Events exposing (keyCode, on)
 import Json.Decode as Json
+import Process
 import Task
 
 
@@ -732,13 +733,15 @@ type Msg option
     | OnMouseMove (Option option)
     | OnChange String
     | BtnLabelFocus
+    | GotFocus (Result Dom.Error ())
+    | BtnClick
     | OnFocus
+    | ShowMenu
     | OnLoseFocus
     | OnKeyDown Int
     | GetElement KeyDirection Int (Result Dom.Error Dom.Element)
     | GetViewport KeyDirection Int Float (Result Dom.Error Dom.Viewport)
     | PositionElement (Result Dom.Error ())
-    | GotFocus (Result Dom.Error ())
 
 
 {-|
@@ -835,15 +838,22 @@ update msg (Dropdown dropdown) =
         GotFocus _ ->
             nothingToDo (Dropdown dropdown)
 
+        BtnClick ->
+            nothingToDo
+                (Dropdown { dropdown | show = not dropdown.show })
+
         OnFocus ->
             ( Dropdown
                 { dropdown
-                    | show = True
-                    , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
+                    | matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
                 }
-            , Cmd.none
+            , Process.sleep 20
+                |> Task.perform (\_ -> ShowMenu)
             , FocusIn
             )
+
+        ShowMenu ->
+            nothingToDo (Dropdown { dropdown | show = True })
 
         OnLoseFocus ->
             ( Dropdown
@@ -1261,7 +1271,7 @@ view toMsg (Dropdown dropdown) =
                     button =
                         Input.button
                             (attrs "button")
-                            { onPress = Nothing
+                            { onPress = Just BtnClick
                             , label =
                                 case dropdown.selected of
                                     Nothing ->
