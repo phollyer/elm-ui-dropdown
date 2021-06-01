@@ -2,7 +2,7 @@ module Dropdown exposing
     ( Dropdown, init, id
     , InputType(..), inputType
     , optionsBy, options, stringOptions, intOptions, floatOptions
-    , label, labelHidden
+    , label, labelHidden, buttonLabel
     , placeholder
     , Placement(..)
     , labelPlacement, labelSpacing
@@ -66,7 +66,7 @@ will appear.
 
 ### Label
 
-@docs label, labelHidden
+@docs label, labelHidden, buttonLabel
 
 
 ### Placeholder
@@ -166,6 +166,7 @@ type Dropdown option
         , labelPlacement : Placement
         , labelSpacing : Int
         , labelHidden : ( Bool, String )
+        , buttonLabel : Element (Msg option)
         , placeholder : Maybe (Placeholder (Msg option))
         , maxHeight : Int
         , inputAttributes : List (Attribute (Msg option))
@@ -213,33 +214,17 @@ init =
         , labelPlacement = Above
         , labelSpacing = 10
         , labelHidden = ( False, "" )
+        , buttonLabel =
+            El.el
+                [ El.centerX ]
+                (El.text "-- Select --")
         , placeholder = Nothing
         , maxHeight = 150
-        , inputAttributes =
-            [ Background.color white
-            , Border.color black
-            , Border.width 1
-            , Border.rounded 5
-            , Font.color black
-            , El.padding 5
-            ]
-        , menuAttributes =
-            [ Background.color white
-            , Border.color black
-            , Border.width 1
-            , Border.rounded 5
-            , Font.color black
-            ]
-        , optionAttributes = [ El.padding 5 ]
-        , optionHoverAttributes =
-            [ Background.color grey
-            , El.padding 5
-            ]
-        , optionSelectedAttributes =
-            [ Background.color black
-            , Font.color white
-            , El.padding 5
-            ]
+        , inputAttributes = []
+        , menuAttributes = []
+        , optionAttributes = []
+        , optionHoverAttributes = []
+        , optionSelectedAttributes = []
         , text = ""
         , selected = Nothing
         , hovered = Nothing
@@ -575,6 +560,16 @@ labelSpacing spacing (Dropdown dropdown) =
 labelHidden : ( Bool, String ) -> Dropdown option -> Dropdown option
 labelHidden hidden (Dropdown dropdown) =
     Dropdown { dropdown | labelHidden = hidden }
+
+
+{-| The text element for the [Button](#InputType) if nothing is selected.
+
+The default is "-- Select --".
+
+-}
+buttonLabel : Element (Msg option) -> Dropdown option -> Dropdown option
+buttonLabel label_ (Dropdown dropdown) =
+    Dropdown { dropdown | buttonLabel = label_ }
 
 
 {-| Provide the
@@ -1182,10 +1177,16 @@ view toMsg (Dropdown dropdown) =
 
         attrs id_ =
             List.append
-                [ El.htmlAttribute <|
+                [ Background.color white
+                , Border.color black
+                , Border.width 1
+                , Border.rounded 5
+                , El.htmlAttribute <|
                     Attr.id (dropdown.id ++ "-" ++ id_)
+                , El.padding 5
                 , Event.onFocus OnFocus
                 , Event.onLoseFocus OnLoseFocus
+                , Font.color black
                 , onKeyDown OnKeyDown
                 ]
                 dropdown.inputAttributes
@@ -1262,16 +1263,17 @@ view toMsg (Dropdown dropdown) =
                             (attrs "button")
                             { onPress = Nothing
                             , label =
-                                El.text <|
-                                    case dropdown.selected of
-                                        Nothing ->
-                                            "-- Select --"
+                                case dropdown.selected of
+                                    Nothing ->
+                                        dropdown.buttonLabel
 
-                                        Just ( _, label_, _ ) ->
-                                            label_
+                                    Just ( _, label_, _ ) ->
+                                        El.el
+                                            [ El.centerX ]
+                                            (El.text label_)
                             }
 
-                    buttonLabel =
+                    buttonLabel_ =
                         El.el
                             [ Event.onClick BtnLabelFocus
                             , labelPadding
@@ -1290,26 +1292,26 @@ view toMsg (Dropdown dropdown) =
 
                     ( _, Above ) ->
                         column
-                            [ buttonLabel
+                            [ buttonLabel_
                             , button
                             ]
 
                     ( _, Below ) ->
                         column
                             [ button
-                            , buttonLabel
+                            , buttonLabel_
                             ]
 
                     ( _, Left ) ->
                         row
-                            [ buttonLabel
+                            [ buttonLabel_
                             , button
                             ]
 
                     ( _, Right ) ->
                         row
                             [ button
-                            , buttonLabel
+                            , buttonLabel_
                             ]
         )
         |> El.map toMsg
@@ -1337,12 +1339,17 @@ menuView (Dropdown dropdown) =
         <|
             El.column
                 (List.append
-                    [ El.htmlAttribute <|
+                    [ Background.color white
+                    , Border.color black
+                    , Border.width 1
+                    , Border.rounded 5
+                    , El.htmlAttribute <|
                         Attr.id dropdown.id
                     , El.height <|
                         El.maximum dropdown.maxHeight El.shrink
-                    , El.width El.fill
                     , El.scrollbarY
+                    , El.width El.fill
+                    , Font.color black
                     ]
                     dropdown.menuAttributes
                 )
@@ -1370,13 +1377,24 @@ optionView (Dropdown dropdown) (( index, label_, _ ) as option) =
             , Event.onMouseMove (OnMouseMove option)
             ]
             (if dropdown.selected == Just option then
-                dropdown.optionSelectedAttributes
+                List.append
+                    [ Background.color black
+                    , Font.color white
+                    , El.padding 5
+                    ]
+                    dropdown.optionSelectedAttributes
 
              else if dropdown.hovered == Just option then
-                dropdown.optionHoverAttributes
+                List.append
+                    [ Background.color grey
+                    , El.padding 5
+                    ]
+                    dropdown.optionHoverAttributes
 
              else
-                dropdown.optionAttributes
+                List.append
+                    [ El.padding 5 ]
+                    dropdown.optionAttributes
             )
         )
         (El.text label_)
