@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Nothing at the moment.
 
+## [1.0.2] - 2021-06-01
+
+### Added
+
+- `buttonlabel` function in order to set the text on the Button when nothing is selected. The default is "-- Select --".
+
+### Moved
+
+- The default Element attributes are now set in the view rather than on the model. This is so that they don't all get overwritten at once when the user adds their custom attributes.
+
 ## [1.0.1] - 2021-05-31
 
 ### Fixed
@@ -20,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.0.1...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.0.2...HEAD
+[1.0.2]: https://github.com/phollyer/elm-ui-dropdown/compare/1.0.1...1.0.2
 [1.0.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/phollyer/elm-ui-dropdown/releases/tag/v1.0.0
