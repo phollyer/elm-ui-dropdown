@@ -9,7 +9,7 @@ module Dropdown exposing
     , menuPlacement, menuSpacing
     , maxHeight, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
     , FilterType(..), filterType
-    , removeSelected, setSelected
+    , setSelected, removeSelected
     , selected, selectedOption
     , OutMsg(..), Msg, update
     , view
@@ -97,7 +97,7 @@ Filtering is currently case insensitive.
 
 ### Selected Option
 
-@docs removeSelected, setSelected
+@docs setSelected, removeSelected
 
 
 ## Query
@@ -641,6 +641,46 @@ optionSelectedAttributes attrs (Dropdown dropdown) =
     Dropdown { dropdown | optionSelectedAttributes = attrs }
 
 
+{-| Set the selected option - it must exist in the list of
+[options originally provided](#setting-options).
+
+**Warning**
+
+This function changes the internal state, and so needs to be used where the
+state change can be captured. This is likely to be your `update` function.
+
+If you use this in your `view` code it will have no effect.
+
+-}
+setSelected : Maybe option -> Dropdown option -> Dropdown option
+setSelected maybeOption (Dropdown dropdown) =
+    case maybeOption of
+        Nothing ->
+            Dropdown
+                { dropdown
+                    | selected = Nothing
+                    , text = ""
+                }
+
+        Just option ->
+            let
+                maybeSelected =
+                    List.filter (\( _, _, option_ ) -> option_ == option) dropdown.options
+                        |> List.head
+            in
+            Dropdown
+                { dropdown
+                    | selected = maybeSelected
+                    , text =
+                        case maybeSelected of
+                            Just ( _, label_, _ ) ->
+                                label_
+
+                            Nothing ->
+                                ""
+                }
+
+
 {-| Remove the selected option of one dropdown from the list of options of
 another dropdown.
 
@@ -673,32 +713,6 @@ removeSelected (Dropdown dropdown) (Dropdown fromDropdown) =
                 { fromDropdown
                     | options =
                         List.filter (\( _, _, option_ ) -> option /= option_) fromDropdown.options
-                }
-
-
-{-| Set the selected option - it must exist in the list of
-[options originally provided](#setting-options).
-
-**Warning**
-
-This function changes the internal state, and so needs to be used where the
-state change can be captured. This is likely to be your `update` function.
-
-If you use this in your `view` code it will have no effect.
-
--}
-setSelected : Maybe option -> Dropdown option -> Dropdown option
-setSelected maybeOption (Dropdown dropdown) =
-    case maybeOption of
-        Nothing ->
-            Dropdown { dropdown | selected = Nothing }
-
-        Just option ->
-            Dropdown
-                { dropdown
-                    | selected =
-                        List.filter (\( _, _, option_ ) -> option_ == option) dropdown.options
-                            |> List.head
                 }
 
 
