@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Nothing at the moment.
 
+## [1.2.1] - 2021-06-02
+
+### Fixed
+
+- set the text in the `TextField` appropriately when `setSelected` is called:
+  - when `Nothing` -> use an empty `String`
+  - when `Just` -> use the selected option's label
+
 ## [1.2.0] - 2021-06-01
 
 ### Added
@@ -42,7 +50,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.2.0...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.2.1...HEAD
+[1.2.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.1.1...1.2.0
 [1.1.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.0.1...1.1.0
