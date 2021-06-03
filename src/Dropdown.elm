@@ -31,9 +31,11 @@ therefore be used when you [init](#init) the Dropdown, or in your `update`
 function where model changes can be captured.
 
 The affected functions are, [id](#id), [filterType](#filterType),
-[removeSelected](#removeSelected) & [setSelected](#setSelected), along with all
-the functions for [setting the menu options](#setting-options). Each function
-or section has a warning documenting this restriction where it's applicable.
+[setSelected](#setSelected), [removeSelected](#removeSelected),
+[removeOption](#removeOption] & [openOnMouseEnter](#openOnMouseEnter), along
+with all the functions for [setting the menu options](#setting-options). Each
+function or section has a warning documenting this restriction where it's
+applicable.
 
 All other functions can be used safely within `view` code.
 
@@ -725,6 +727,14 @@ removeSelected (Dropdown dropdown) (Dropdown fromDropdown) =
 
 
 {-| Remove an `option` from the internal list.
+
+**Warning**
+
+This function changes the internal state, and so needs to be used where the
+state change can be captured. This is likely to be your `update` function.
+
+If you use this in your `view` code it will have no effect.
+
 -}
 removeOption : option -> Dropdown option -> Dropdown option
 removeOption option (Dropdown dropdown) =
@@ -747,6 +757,13 @@ If this is set to `True` the menu will also close automatically when the mouse
 leaves.
 
 The default is `True`.
+
+**Warning**
+
+This function changes the internal state, and so needs to be used where the
+state change can be captured. This is likely to be your `update` function.
+
+If you use this in your `view` code it will have no effect.
 
 -}
 openOnMouseEnter : Bool -> Dropdown option -> Dropdown option
