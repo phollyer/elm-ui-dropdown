@@ -10,7 +10,7 @@ module Dropdown exposing
     , maxHeight, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
     , FilterType(..), filterType
     , setSelected, removeSelected
-    , selected, selectedOption
+    , selected, selectedOption, isOpen
     , OutMsg(..), Msg, update
     , view
     )
@@ -102,7 +102,7 @@ Filtering is currently case insensitive.
 
 ## Query
 
-@docs selected, selectedOption
+@docs selected, selectedOption, isOpen
 
 
 ## Update
@@ -739,6 +739,13 @@ selected (Dropdown dropdown) =
 selectedOption : Dropdown option -> Maybe option
 selectedOption =
     selected >> Maybe.map (\( _, _, option ) -> option)
+
+
+{-| Determine is the dropdown is open or not.
+-}
+isOpen : Dropdown option -> Bool
+isOpen (Dropdown dropdown) =
+    dropdown.show
 
 
 
