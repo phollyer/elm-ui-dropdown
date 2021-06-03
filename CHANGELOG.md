@@ -6,8 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [unreleased]
 
-- Nothing at the moment.
-
 ### Added
 
 - the menu opens automatically when the mouse enters the Button.
