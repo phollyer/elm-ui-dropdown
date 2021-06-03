@@ -776,8 +776,9 @@ type OutMsg option
 -}
 type Msg option
     = OnMouseDown (Option option)
-    | OnMouseEnter (Option option)
     | OnMouseMove (Option option)
+    | OnMouseEnterOption (Option option)
+    | OnMouseEnterButton
     | OnChange String
     | BtnLabelFocus
     | GotFocus (Result Dom.Error ())
@@ -833,7 +834,16 @@ update msg (Dropdown dropdown) =
             , Selected option
             )
 
-        OnMouseEnter option ->
+        OnMouseMove option ->
+            nothingToDo
+                (Dropdown
+                    { dropdown
+                        | hovered = Just option
+                        , navType = Just Mouse
+                    }
+                )
+
+        OnMouseEnterOption option ->
             nothingToDo
                 (Dropdown
                     { dropdown
@@ -850,14 +860,16 @@ update msg (Dropdown dropdown) =
                     }
                 )
 
-        OnMouseMove option ->
-            nothingToDo
-                (Dropdown
-                    { dropdown
-                        | hovered = Just option
-                        , navType = Just Mouse
-                    }
-                )
+        OnMouseEnterButton ->
+            ( Dropdown
+                { dropdown
+                    | show = True
+                    , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
+                }
+            , Task.attempt GotFocus <|
+                Dom.focus (dropdown.id ++ "-button")
+            , NoOp
+            )
 
         OnChange text ->
             ( Dropdown
@@ -878,7 +890,8 @@ update msg (Dropdown dropdown) =
                     | show = True
                     , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
                 }
-            , Task.attempt GotFocus (Dom.focus (dropdown.id ++ "-button"))
+            , Task.attempt GotFocus <|
+                Dom.focus (dropdown.id ++ "-button")
             , FocusIn
             )
 
@@ -1225,12 +1238,11 @@ view : (Msg option -> msg) -> Dropdown option -> Element msg
 view toMsg (Dropdown dropdown) =
     let
         menu =
-            case dropdown.matchedOptions of
-                [] ->
-                    El.none
+            if dropdown.show then
+                menuView (Dropdown dropdown)
 
-                _ ->
-                    menuView (Dropdown dropdown)
+            else
+                El.none
 
         attrs id_ =
             List.append
@@ -1317,7 +1329,9 @@ view toMsg (Dropdown dropdown) =
                 let
                     button =
                         Input.button
-                            (attrs "button")
+                            (Event.onMouseEnter OnMouseEnterButton
+                                :: attrs "button"
+                            )
                             { onPress = Just BtnClick
                             , label =
                                 case dropdown.selected of
@@ -1430,7 +1444,7 @@ optionView (Dropdown dropdown) (( index, label_, _ ) as option) =
                 Attr.id (toOptionId index dropdown.id)
             , El.width El.fill
             , Event.onMouseDown (OnMouseDown option)
-            , Event.onMouseEnter (OnMouseEnter option)
+            , Event.onMouseEnter (OnMouseEnterOption option)
             , Event.onMouseMove (OnMouseMove option)
             ]
             (if dropdown.selected == Just option then
