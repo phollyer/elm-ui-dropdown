@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [unreleased]
 
+- Nothing.
+
+## [1.4.0] - 2021-06-03
+
 ### Added
 
 - the menu opens automatically when the mouse enters, and closes when the
@@ -62,7 +66,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.3.0...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.4.0...HEAD
+[1.4.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.2.1...1.3.0
 [1.2.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.1.1...1.2.0
