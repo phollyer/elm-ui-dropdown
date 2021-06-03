@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- the menu opens automatically when the mouse enters the Button.
+- the menu opens automatically when the mouse enters, and closes when the
+  mouse leaves.
+
+- `openOnMouseEnter` function to decide if the the menu opens when the mouse enters
+  and closes when the mouse leaves. The default is `True`.
 
 ## [1.3.0] - 2021-06-03
 

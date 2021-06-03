@@ -10,6 +10,7 @@ module Dropdown exposing
     , maxHeight, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
     , FilterType(..), filterType
     , setSelected, removeSelected
+    , openOnMouseEnter
     , selected, selectedOption, isOpen
     , OutMsg(..), Msg, update
     , view
@@ -100,6 +101,11 @@ Filtering is currently case insensitive.
 @docs setSelected, removeSelected
 
 
+### Controls
+
+@docs openOnMouseEnter
+
+
 ## Query
 
 @docs selected, selectedOption, isOpen
@@ -179,6 +185,7 @@ type Dropdown option
         , selected : Maybe (Option option)
         , hovered : Maybe (Option option)
         , show : Bool
+        , openOnEnter : Bool
         , matchedOptions : List (Option option)
         , navType : Maybe NavType
         }
@@ -230,6 +237,7 @@ init =
         , selected = Nothing
         , hovered = Nothing
         , show = False
+        , openOnEnter = True
         , matchedOptions = []
         , navType = Nothing
         }
@@ -717,6 +725,23 @@ removeSelected (Dropdown dropdown) (Dropdown fromDropdown) =
 
 
 
+{- Controls -}
+
+
+{-| Choose whether the menu opens when the mouse enters.
+
+If this is set to `True` the menu will also close automatically when the mouse
+leaves.
+
+The default is `True`.
+
+-}
+openOnMouseEnter : Bool -> Dropdown option -> Dropdown option
+openOnMouseEnter open (Dropdown dropdown) =
+    Dropdown { dropdown | openOnEnter = open }
+
+
+
 {- Queries -}
 
 
@@ -778,7 +803,8 @@ type Msg option
     = OnMouseDown (Option option)
     | OnMouseMove (Option option)
     | OnMouseEnterOption (Option option)
-    | OnMouseEnterButton
+    | OnMouseEnter
+    | OnMouseLeave
     | OnChange String
     | BtnLabelFocus
     | GotFocus (Result Dom.Error ())
@@ -860,16 +886,28 @@ update msg (Dropdown dropdown) =
                     }
                 )
 
-        OnMouseEnterButton ->
-            ( Dropdown
-                { dropdown
-                    | show = True
-                    , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
-                }
-            , Task.attempt GotFocus <|
-                Dom.focus (dropdown.id ++ "-button")
-            , NoOp
-            )
+        OnMouseEnter ->
+            if dropdown.openOnEnter then
+                ( Dropdown
+                    { dropdown
+                        | show = True
+                        , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
+                    }
+                , Task.attempt GotFocus <|
+                    Dom.focus (dropdown.id ++ "-button")
+                , NoOp
+                )
+
+            else
+                nothingToDo (Dropdown dropdown)
+
+        OnMouseLeave ->
+            if dropdown.openOnEnter then
+                nothingToDo
+                    (Dropdown { dropdown | show = False })
+
+            else
+                nothingToDo (Dropdown dropdown)
 
         OnChange text ->
             ( Dropdown
@@ -1289,6 +1327,8 @@ view toMsg (Dropdown dropdown) =
             Right ->
                 El.onRight menu
         , El.width El.fill
+        , Event.onMouseEnter OnMouseEnter
+        , Event.onMouseLeave OnMouseLeave
         ]
         (case dropdown.inputType of
             TextField ->
@@ -1329,9 +1369,7 @@ view toMsg (Dropdown dropdown) =
                 let
                     button =
                         Input.button
-                            (Event.onMouseEnter OnMouseEnterButton
-                                :: attrs "button"
-                            )
+                            (attrs "button")
                             { onPress = Just BtnClick
                             , label =
                                 case dropdown.selected of
