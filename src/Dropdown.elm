@@ -9,7 +9,7 @@ module Dropdown exposing
     , menuPlacement, menuSpacing
     , maxHeight, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
     , FilterType(..), filterType
-    , setSelected, removeSelected
+    , setSelected, removeSelected, removeOption
     , openOnMouseEnter
     , selected, selectedOption, isOpen
     , OutMsg(..), Msg, update
@@ -98,7 +98,7 @@ Filtering is currently case insensitive.
 
 ### Selected Option
 
-@docs setSelected, removeSelected
+@docs setSelected, removeSelected, removeOption
 
 
 ### Controls
@@ -722,6 +722,19 @@ removeSelected (Dropdown dropdown) (Dropdown fromDropdown) =
                     | options =
                         List.filter (\( _, _, option_ ) -> option /= option_) fromDropdown.options
                 }
+
+
+{-| Remove an `option` from the internal list.
+-}
+removeOption : option -> Dropdown option -> Dropdown option
+removeOption option (Dropdown dropdown) =
+    Dropdown
+        { dropdown
+            | options =
+                List.filter (\( _, _, option_ ) -> option /= option_) dropdown.options
+            , matchedOptions =
+                List.filter (\( _, _, option_ ) -> option /= option_) dropdown.matchedOptions
+        }
 
 
 
