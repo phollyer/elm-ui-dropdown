@@ -11,7 +11,7 @@ module Dropdown exposing
     , FilterType(..), filterType
     , setSelected, removeSelected, removeOption
     , openOnMouseEnter
-    , selected, selectedOption, selectedLabel, isOpen
+    , selected, selectedOption, selectedLabel, list, listOptions, listLabels, isOpen
     , OutMsg(..), Msg, update
     , view
     )
@@ -110,7 +110,7 @@ Filtering is currently case insensitive.
 
 ## Query
 
-@docs selected, selectedOption, selectedLabel, isOpen
+@docs selected, selectedOption, selectedLabel, list, listOptions, listLabels, isOpen
 
 
 ## Update
@@ -801,6 +801,32 @@ selectedOption =
 selectedLabel : Dropdown option -> Maybe String
 selectedLabel =
     selected >> Maybe.map (\( _, label_, _ ) -> label_)
+
+
+{-| List all the `option` information. The tuples returned represent:
+
+  - Int - the index of the `option`
+  - String - the label for the `option`
+  - option - the `option` itself
+
+-}
+list : Dropdown option -> List ( Int, String, option )
+list (Dropdown dropdown) =
+    dropdown.options
+
+
+{-| List all the `option`s.
+-}
+listOptions : Dropdown option -> List option
+listOptions (Dropdown dropdown) =
+    List.map (\( _, _, option ) -> option) dropdown.options
+
+
+{-| List all the labels for each option.
+-}
+listLabels : Dropdown option -> List String
+listLabels (Dropdown dropdown) =
+    List.map (\( _, label_, _ ) -> label_) dropdown.options
 
 
 {-| Determine is the dropdown is open or not.
