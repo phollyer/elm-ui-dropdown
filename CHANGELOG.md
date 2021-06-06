@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Nothing.
 
+## [1.7.1] - 2021-06-06
+
+### Fixed
+
+- `TextField` input types now receive focus automatically when the mouse enters if `openOnMouseEnter` is set to `True`.
+
 ## [1.7.0] - 2021-06-06
 
 ### Added
@@ -92,7 +98,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.7.0...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.7.1...HEAD
+[1.7.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.7.0...1.7.1
 [1.7.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.6.0...1.7.0
 [1.6.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.5.1...1.6.0
 [1.5.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.5.0...1.5.1

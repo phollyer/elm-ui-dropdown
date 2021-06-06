@@ -957,7 +957,16 @@ update msg (Dropdown dropdown) =
                         , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
                     }
                 , Task.attempt GotFocus <|
-                    Dom.focus (dropdown.id ++ "-button")
+                    Dom.focus
+                        (dropdown.id
+                            ++ (case dropdown.inputType of
+                                    Button ->
+                                        "-button"
+
+                                    TextField ->
+                                        "-text-field"
+                               )
+                        )
                 , NoOp
                 )
 
