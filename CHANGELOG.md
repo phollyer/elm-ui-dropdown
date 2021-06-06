@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Nothing.
 
+## [1.7.0] - 2021-06-06
+
+### Added
+
+- `list` function to retrieve a list of option data in the form `(Int, String, option)` (`(index, label, option)`).
+- `listOptions` function to retrieve the list of `option`s.
+- `listLabels` function to retrieve a list of the labels for each `option`.
+
 ## [1.6.0] - 2021-06-06
 
 ### Added
@@ -84,7 +92,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.6.0...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.7.0...HEAD
+[1.7.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.6.0...1.7.0
 [1.6.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.5.1...1.6.0
 [1.5.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.5.0...1.5.1
 [1.5.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.4.0...1.5.0
