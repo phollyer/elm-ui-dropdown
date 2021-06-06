@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Nothing.
 
+## [1.6.0] - 2021-06-06
+
+### Added
+
+- `selectedLabel` function to retrieve the label of the selected option.
+
 ## [1.5.1] - 2021-06-03
 
 ### Updated
@@ -78,7 +84,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.5.1...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.6.0...HEAD
+[1.6.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.5.1...1.6.0
 [1.5.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.5.0...1.5.1
 [1.5.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.4.0...1.5.0
 [1.4.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.3.0...1.4.0
