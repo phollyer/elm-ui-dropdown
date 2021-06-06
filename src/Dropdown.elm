@@ -11,7 +11,7 @@ module Dropdown exposing
     , FilterType(..), filterType
     , setSelected, removeSelected, removeOption
     , openOnMouseEnter
-    , selected, selectedOption, selectedLabel, list, listOptions, listLabels, isOpen
+    , selected, selectedOption, selectedLabel, list, listOptions, listLabels, text, isOpen
     , OutMsg(..), Msg, update
     , view
     )
@@ -110,7 +110,7 @@ Filtering is currently case insensitive.
 
 ## Query
 
-@docs selected, selectedOption, selectedLabel, list, listOptions, listLabels, isOpen
+@docs selected, selectedOption, selectedLabel, list, listOptions, listLabels, text, isOpen
 
 
 ## Update
@@ -829,6 +829,13 @@ listLabels (Dropdown dropdown) =
     List.map (\( _, label_, _ ) -> label_) dropdown.options
 
 
+{-| Get the text entered in the [TextField](#InputType).
+-}
+text : Dropdown option -> String
+text (Dropdown dropdown) =
+    dropdown.text
+
+
 {-| Determine is the dropdown is open or not.
 -}
 isOpen : Dropdown option -> Bool
@@ -981,17 +988,17 @@ update msg (Dropdown dropdown) =
             else
                 nothingToDo (Dropdown dropdown)
 
-        OnChange text ->
+        OnChange text_ ->
             ( Dropdown
                 { dropdown
-                    | text = text
-                    , matchedOptions = updateMatchedOptions dropdown.filterType text dropdown.options
+                    | text = text_
+                    , matchedOptions = updateMatchedOptions dropdown.filterType text_ dropdown.options
                     , hovered = Nothing
                     , selected = Nothing
                     , show = True
                 }
             , Cmd.none
-            , TextChanged text
+            , TextChanged text_
             )
 
         BtnLabelFocus ->
@@ -1411,8 +1418,8 @@ view toMsg (Dropdown dropdown) =
                     , placeholder = dropdown.placeholder
                     , label =
                         case dropdown.labelHidden of
-                            ( True, text ) ->
-                                Input.labelHidden text
+                            ( True, text_ ) ->
+                                Input.labelHidden text_
 
                             ( False, _ ) ->
                                 case dropdown.labelPlacement of
