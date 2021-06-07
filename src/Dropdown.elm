@@ -1355,7 +1355,7 @@ view : (Msg option -> msg) -> Dropdown option -> Element msg
 view toMsg (Dropdown dropdown) =
     let
         menu =
-            if dropdown.show then
+            if dropdown.show && List.length dropdown.matchedOptions > 0 then
                 menuView (Dropdown dropdown)
 
             else
