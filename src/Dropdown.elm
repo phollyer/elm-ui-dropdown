@@ -10,6 +10,7 @@ module Dropdown exposing
     , maxHeight, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
     , FilterType(..), filterType
     , setSelected, removeSelected, removeOption
+    , setSelectedLabel
     , openOnMouseEnter
     , selected, selectedOption, selectedLabel, list, listOptions, listLabels, text, isOpen
     , OutMsg(..), Msg, update
@@ -101,6 +102,11 @@ Filtering is currently case insensitive.
 ### Selected Option
 
 @docs setSelected, removeSelected, removeOption
+
+
+### Selected Label
+
+@docs setSelectedLabel
 
 
 ### Controls
@@ -685,6 +691,46 @@ setSelected maybeOption (Dropdown dropdown) =
                         case maybeSelected of
                             Just ( _, label_, _ ) ->
                                 label_
+
+                            Nothing ->
+                                ""
+                }
+
+
+{-| Set the selected label - it must exist in the list of
+[options originally provided](#setting-options).
+
+**Warning**
+
+This function changes the internal state, and so needs to be used where the
+state change can be captured. This is likely to be your `update` function.
+
+If you use this in your `view` code it will have no effect.
+
+-}
+setSelectedLabel : Maybe String -> Dropdown option -> Dropdown option
+setSelectedLabel maybeLabel (Dropdown dropdown) =
+    case maybeLabel of
+        Nothing ->
+            Dropdown
+                { dropdown
+                    | selected = Nothing
+                    , text = ""
+                }
+
+        Just label_ ->
+            let
+                maybeSelected =
+                    List.filter (\( _, l, _ ) -> l == label_) dropdown.options
+                        |> List.head
+            in
+            Dropdown
+                { dropdown
+                    | selected = maybeSelected
+                    , text =
+                        case maybeSelected of
+                            Just ( _, l, _ ) ->
+                                l
 
                             Nothing ->
                                 ""
@@ -1405,6 +1451,8 @@ view toMsg (Dropdown dropdown) =
 
             Right ->
                 El.onRight menu
+        , El.htmlAttribute <|
+            Attr.attribute "data-cy" dropdown.id
         , El.width El.fill
         , Event.onMouseEnter OnMouseEnter
         , Event.onMouseLeave OnMouseLeave

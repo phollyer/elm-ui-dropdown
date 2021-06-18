@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [unreleased]
 
-- Nothing.
+### Added
+
+- `setSelectedLabel` to set the selected option by its label.
 
 ## [1.8.1] - 2021-06-07
 
