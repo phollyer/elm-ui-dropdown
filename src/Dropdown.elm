@@ -11,8 +11,8 @@ module Dropdown exposing
     , FilterType(..), filterType
     , setSelected, removeSelected, removeOption
     , setSelectedLabel
-    , openOnMouseEnter
-    , selected, selectedOption, selectedLabel, list, listOptions, listLabels, text, isOpen
+    , openOnMouseEnter, open, close
+    , selected, selectedOption, selectedLabel, list, listOptions, listLabels, text, isOpen, getId
     , OutMsg(..), Msg, update
     , view
     )
@@ -35,7 +35,7 @@ The affected functions are, [id](#id), [filterType](#filterType),
 [setSelected](#setSelected), [removeSelected](#removeSelected),
 [removeOption](#removeOption] & [openOnMouseEnter](#openOnMouseEnter), along
 with all the functions for [setting the menu options](#setting-options). Each
-function or section has a warning documenting this restriction where it's
+function or section has a warning documenting this restriction where it is
 applicable.
 
 All other functions can be used safely within `view` code.
@@ -111,12 +111,12 @@ Filtering is currently case insensitive.
 
 ### Controls
 
-@docs openOnMouseEnter
+@docs openOnMouseEnter, open, close
 
 
 ## Query
 
-@docs selected, selectedOption, selectedLabel, list, listOptions, listLabels, text, isOpen
+@docs selected, selectedOption, selectedLabel, list, listOptions, listLabels, text, isOpen, getId
 
 
 ## Update
@@ -165,8 +165,6 @@ Use this to define the `option` type on your model.
         = A
         | B
         ...
-
-Interact with it with the following API.
 
 -}
 type Dropdown option
@@ -748,7 +746,8 @@ For example, selecting a home team and away team from the same list of teams.
 In this case, once the home team has been selected, you may wish to remove that
 option from the list of away teams.
 
-    Dropdown.removeSelected homeTeamDropdown awayTeamDropdown
+    awayTeamDropdown =
+        Dropdown.removeSelected homeTeamDropdown awayTeamDropdown
 
 **Warning**
 
@@ -813,8 +812,20 @@ If you use this in your `view` code it will have no effect.
 
 -}
 openOnMouseEnter : Bool -> Dropdown option -> Dropdown option
-openOnMouseEnter open (Dropdown dropdown) =
-    Dropdown { dropdown | openOnEnter = open }
+openOnMouseEnter state (Dropdown dropdown) =
+    Dropdown { dropdown | openOnEnter = state }
+
+
+{-| -}
+open : Dropdown option -> Dropdown option
+open (Dropdown dropdown) =
+    Dropdown { dropdown | show = True }
+
+
+{-| -}
+close : Dropdown option -> Dropdown option
+close (Dropdown dropdown) =
+    Dropdown { dropdown | show = False }
 
 
 
@@ -882,11 +893,18 @@ text (Dropdown dropdown) =
     dropdown.text
 
 
-{-| Determine is the dropdown is open or not.
+{-| Determine if the dropdown is open or not.
 -}
 isOpen : Dropdown option -> Bool
 isOpen (Dropdown dropdown) =
     dropdown.show
+
+
+{-| Get the `id` of the dropdown.
+-}
+getId : Dropdown option -> String
+getId (Dropdown dropdown) =
+    dropdown.id
 
 
 
@@ -904,6 +922,15 @@ toOptionId index id_ =
 
 {-| Pattern match on this type in your `update` function to determine the event
 that occured.
+
+  - `Selected (Int, String, option)`
+      - `Int` is the index of the option in the menu
+      - `String` is the label of the option displayed in the menu
+      - `option` is the `option`.
+
+  - `TextChanged String`
+      - `String` is the text entered by the user.
+
 -}
 type OutMsg option
     = NoOp
@@ -911,6 +938,8 @@ type OutMsg option
     | TextChanged String
     | FocusIn
     | FocusOut
+    | Opened
+    | Closed
 
 
 {-| This is an opaque type, pattern match on [OutMsg](#OutMsg).
@@ -927,6 +956,7 @@ type Msg option
     | BtnClick
     | OnFocus
     | ShowMenu
+    | HideMenu
     | OnLoseFocus
     | OnKeyDown Int
     | GetElement KeyDirection Int (Result Dom.Error Dom.Element)
@@ -1020,7 +1050,7 @@ update msg (Dropdown dropdown) =
                                         "-text-field"
                                )
                         )
-                , NoOp
+                , Opened
                 )
 
             else
@@ -1028,8 +1058,10 @@ update msg (Dropdown dropdown) =
 
         OnMouseLeave ->
             if dropdown.openOnEnter then
-                nothingToDo
-                    (Dropdown { dropdown | show = False })
+                ( Dropdown { dropdown | show = False }
+                , Cmd.none
+                , Closed
+                )
 
             else
                 nothingToDo (Dropdown dropdown)
@@ -1041,17 +1073,16 @@ update msg (Dropdown dropdown) =
                     , matchedOptions = updateMatchedOptions dropdown.filterType text_ dropdown.options
                     , hovered = Nothing
                     , selected = Nothing
-                    , show = True
                 }
-            , Cmd.none
+            , Process.sleep 0
+                |> Task.perform (\_ -> ShowMenu)
             , TextChanged text_
             )
 
         BtnLabelFocus ->
             ( Dropdown
                 { dropdown
-                    | show = True
-                    , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
+                    | matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
                 }
             , Task.attempt GotFocus <|
                 Dom.focus (dropdown.id ++ "-button")
@@ -1059,33 +1090,55 @@ update msg (Dropdown dropdown) =
             )
 
         GotFocus _ ->
-            nothingToDo (Dropdown dropdown)
+            ( Dropdown { dropdown | show = True }
+            , Cmd.none
+            , Opened
+            )
 
         BtnClick ->
-            nothingToDo
-                (Dropdown { dropdown | show = not dropdown.show })
+            if dropdown.openOnEnter then
+                nothingToDo (Dropdown dropdown)
+
+            else
+                ( Dropdown { dropdown | show = not dropdown.show }
+                , Cmd.none
+                , if not dropdown.show then
+                    Opened
+
+                  else
+                    Closed
+                )
 
         OnFocus ->
             ( Dropdown
                 { dropdown
                     | matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
                 }
-            , Process.sleep 20
+            , Process.sleep 0
                 |> Task.perform (\_ -> ShowMenu)
             , FocusIn
             )
 
-        ShowMenu ->
-            nothingToDo (Dropdown { dropdown | show = True })
-
         OnLoseFocus ->
             ( Dropdown
                 { dropdown
-                    | show = False
-                    , hovered = Nothing
+                    | hovered = Nothing
                 }
-            , Cmd.none
+            , Process.sleep 0
+                |> Task.perform (\_ -> HideMenu)
             , FocusOut
+            )
+
+        ShowMenu ->
+            ( Dropdown { dropdown | show = True }
+            , Cmd.none
+            , Opened
+            )
+
+        HideMenu ->
+            ( Dropdown { dropdown | show = False }
+            , Cmd.none
+            , Closed
             )
 
         OnKeyDown code ->
@@ -1110,7 +1163,7 @@ update msg (Dropdown dropdown) =
                 Ok { element } ->
                     ( Dropdown dropdown
                     , Task.attempt (GetViewport keyDirection index element.height) <|
-                        Dom.getViewportOf dropdown.id
+                        Dom.getViewportOf (dropdown.id ++ "-menu")
                     , NoOp
                     )
 
@@ -1137,14 +1190,14 @@ update msg (Dropdown dropdown) =
                         Down ->
                             if optionBottom < topBoundary then
                                 ( Dropdown dropdown
-                                , Dom.setViewportOf dropdown.id 0 optionTop
+                                , Dom.setViewportOf (dropdown.id ++ "-menu") 0 optionTop
                                     |> Task.attempt PositionElement
                                 , NoOp
                                 )
 
                             else if optionBottom > bottomBoundary then
                                 ( Dropdown dropdown
-                                , Dom.setViewportOf dropdown.id 0 (optionTop + optionHeight - viewport.height)
+                                , Dom.setViewportOf (dropdown.id ++ "-menu") 0 (optionTop + optionHeight - viewport.height)
                                     |> Task.attempt PositionElement
                                 , NoOp
                                 )
@@ -1155,7 +1208,7 @@ update msg (Dropdown dropdown) =
                         Up ->
                             if optionTop < topBoundary then
                                 ( Dropdown dropdown
-                                , Dom.setViewportOf dropdown.id 0 optionTop
+                                , Dom.setViewportOf (dropdown.id ++ "-menu") 0 optionTop
                                     |> Task.attempt PositionElement
                                 , NoOp
                                 )
@@ -1166,7 +1219,7 @@ update msg (Dropdown dropdown) =
                 Err _ ->
                     nothingToDo (Dropdown dropdown)
 
-        PositionElement _ ->
+        PositionElement result ->
             nothingToDo (Dropdown dropdown)
 
 
@@ -1453,6 +1506,8 @@ view toMsg (Dropdown dropdown) =
                 El.onRight menu
         , El.htmlAttribute <|
             Attr.attribute "data-cy" dropdown.id
+        , El.htmlAttribute <|
+            Attr.id dropdown.id
         , El.width El.fill
         , Event.onMouseEnter OnMouseEnter
         , Event.onMouseLeave OnMouseLeave
@@ -1460,7 +1515,7 @@ view toMsg (Dropdown dropdown) =
         (case dropdown.inputType of
             TextField ->
                 Input.text
-                    (attrs "text-field")
+                    (attrs "textfield")
                     { text = dropdown.text
                     , onChange = OnChange
                     , placeholder = dropdown.placeholder
@@ -1580,7 +1635,7 @@ menuView (Dropdown dropdown) =
                     , Border.width 1
                     , Border.rounded 5
                     , El.htmlAttribute <|
-                        Attr.id dropdown.id
+                        Attr.id (dropdown.id ++ "-menu")
                     , El.height <|
                         El.maximum dropdown.maxHeight El.shrink
                     , El.scrollbarY

@@ -6,9 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [unreleased]
 
+- Nothing
+
+## [2.0.0] - 2021-06-26
+
 ### Added
 
 - `setSelectedLabel` to set the selected option by its label.
+- `Opened` & `Closed` `OutMsg`'s.
+- `open` & `close` functions to programmatically open and close the menu.
+- `getId` function.
+
+### Changed
+
+- internal `id`s.
+
+  - The `id` of the element itself is now the `id` provided by the user.
+  - The `id` of the button is the `id` provided by the user `++ "-button"`.
+  - The `id` of the textfield is the `id` provided by the user `++ "-textfield"`.
+  - The `id` of the menu is the `id` provided by the user `++ "-menu"`.
+  - The `id` of a menu item is the `id` provided by the user `++ "-" ++ {item index}`.
 
 ## [1.8.1] - 2021-06-07
 
@@ -112,7 +129,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/1.8.1...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.0.0...HEAD
 [1.8.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.8.0...1.8.1
 [1.8.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.7.1...1.8.0
 [1.7.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.7.0...1.7.1
