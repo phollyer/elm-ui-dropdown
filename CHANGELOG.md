@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [unreleased]
 
-- Nothing
+### Changed
+
+- make the width of the button label `El.fill` so that the user supplied label can be centered
 
 ## [2.0.0] - 2021-06-26
 
