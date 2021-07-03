@@ -1219,7 +1219,7 @@ update msg (Dropdown dropdown) =
                 Err _ ->
                     nothingToDo (Dropdown dropdown)
 
-        PositionElement result ->
+        PositionElement _ ->
             nothingToDo (Dropdown dropdown)
 
 
