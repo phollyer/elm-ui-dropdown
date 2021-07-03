@@ -1566,7 +1566,8 @@ view toMsg (Dropdown dropdown) =
 
                     buttonLabel_ =
                         El.el
-                            [ Event.onClick BtnLabelFocus
+                            [ El.width El.fill
+                            , Event.onClick BtnLabelFocus
                             , labelPadding
                             ]
                             dropdown.label
