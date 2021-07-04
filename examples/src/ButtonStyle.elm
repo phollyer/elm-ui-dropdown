@@ -18,6 +18,7 @@ init _ =
             Dropdown.init
                 |> Dropdown.id "person"
                 |> Dropdown.optionsBy .name (List.sortBy .name people)
+                |> Dropdown.openOnMouseEnter False
       , selected = ""
       }
     , Cmd.none

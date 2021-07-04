@@ -190,6 +190,7 @@ type Dropdown option
         , text : String
         , selected : Maybe (Option option)
         , hovered : Maybe (Option option)
+        , gotFocus : Bool
         , show : Bool
         , openOnEnter : Bool
         , matchedOptions : List (Option option)
@@ -242,6 +243,7 @@ init =
         , text = ""
         , selected = Nothing
         , hovered = Nothing
+        , gotFocus = False
         , show = False
         , openOnEnter = True
         , matchedOptions = []
@@ -995,7 +997,7 @@ type Msg option
 -}
 update : Msg option -> Dropdown option -> ( Dropdown option, Cmd (Msg option), OutMsg option )
 update msg (Dropdown dropdown) =
-    case msg of
+    case msg |> Debug.log "" of
         OnMouseDown (( _, label_, _ ) as option) ->
             ( Dropdown
                 { dropdown
@@ -1090,7 +1092,11 @@ update msg (Dropdown dropdown) =
             )
 
         GotFocus _ ->
-            ( Dropdown { dropdown | show = True }
+            ( Dropdown
+                { dropdown
+                    | show = True
+                    , gotFocus = True
+                }
             , Cmd.none
             , Opened
             )
@@ -1113,6 +1119,8 @@ update msg (Dropdown dropdown) =
             ( Dropdown
                 { dropdown
                     | matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
+                    , gotFocus = True
+                    , show = True
                 }
             , Process.sleep 0
                 |> Task.perform (\_ -> ShowMenu)
@@ -1123,6 +1131,7 @@ update msg (Dropdown dropdown) =
             ( Dropdown
                 { dropdown
                     | hovered = Nothing
+                    , gotFocus = False
                 }
             , Process.sleep 0
                 |> Task.perform (\_ -> HideMenu)
@@ -1552,7 +1561,12 @@ view toMsg (Dropdown dropdown) =
                     button =
                         Input.button
                             (attrs "button")
-                            { onPress = Just BtnClick
+                            { onPress =
+                                if dropdown.gotFocus then
+                                    Just BtnClick
+
+                                else
+                                    Nothing
                             , label =
                                 case dropdown.selected of
                                     Nothing ->

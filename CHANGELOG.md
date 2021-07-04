@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 
-- make the width of the button label `El.fill` so that the user supplied label can be centered
+- make the width of the button label `El.fill` so that the user supplied label can be centered.
+
+### Fixed
+
+- regression bug causing the button to need to be clicked twice to open the menu if the component does not have focus.
 
 ## [2.0.0] - 2021-06-26
 
