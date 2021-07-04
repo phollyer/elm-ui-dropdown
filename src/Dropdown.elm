@@ -997,7 +997,7 @@ type Msg option
 -}
 update : Msg option -> Dropdown option -> ( Dropdown option, Cmd (Msg option), OutMsg option )
 update msg (Dropdown dropdown) =
-    case msg |> Debug.log "" of
+    case msg of
         OnMouseDown (( _, label_, _ ) as option) ->
             ( Dropdown
                 { dropdown
