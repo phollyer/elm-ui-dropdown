@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed
 
 - make the width of the button label `El.fill` so that the user supplied label can be centered.
+- make the default for `openOnMouseEnter` `False` so that this becomes an opt-in rather than an opt-out option.
 
 ### Fixed
 

@@ -245,7 +245,7 @@ init =
         , hovered = Nothing
         , gotFocus = False
         , show = False
-        , openOnEnter = True
+        , openOnEnter = False
         , matchedOptions = []
         , navType = Nothing
         }
@@ -803,7 +803,7 @@ removeOption option (Dropdown dropdown) =
 If this is set to `True` the menu will also close automatically when the mouse
 leaves.
 
-The default is `True`.
+The default is `False`.
 
 **Warning**
 
