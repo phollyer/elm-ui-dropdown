@@ -1,7 +1,7 @@
 module Dropdown exposing
     ( Dropdown, init, id
     , InputType(..), inputType
-    , optionsBy, options, stringOptions, intOptions, floatOptions
+    , optionsBy, options, stringOptions, intOptions, floatOptions, reset
     , label, labelHidden, buttonLabel
     , placeholder
     , Placement(..)
@@ -65,7 +65,7 @@ changes to the model can be captured.
 If you set these in your `view` code they will have no effect and so no menu
 will appear.
 
-@docs optionsBy, options, stringOptions, intOptions, floatOptions
+@docs optionsBy, options, stringOptions, intOptions, floatOptions, reset
 
 
 ### Label
@@ -172,6 +172,7 @@ type Dropdown option
         { id : String
         , inputType : InputType
         , options : List (Option option)
+        , optionsCache : List (Option option)
         , filterType : FilterType
         , menuPlacement : Placement
         , menuSpacing : Int
@@ -222,6 +223,7 @@ init =
         { id = ""
         , inputType = Button
         , options = []
+        , optionsCache = []
         , filterType = NoFilter
         , menuPlacement = Below
         , menuSpacing = 0
@@ -331,10 +333,14 @@ be used for the label in the menu.
 -}
 optionsBy : (option -> String) -> List option -> Dropdown option -> Dropdown option
 optionsBy accessorFunc options_ (Dropdown dropdown) =
+    let
+        options__ =
+            List.indexedMap (\index option -> ( index, accessorFunc option, option )) options_
+    in
     Dropdown
         { dropdown
-            | options =
-                List.indexedMap (\index option -> ( index, accessorFunc option, option )) options_
+            | options = options__
+            , optionsCache = options__
         }
 
 
@@ -368,10 +374,14 @@ the option's label in the menu that is displayed to the user.
 -}
 options : List ( String, option ) -> Dropdown option -> Dropdown option
 options options_ (Dropdown dropdown) =
+    let
+        options__ =
+            List.indexedMap (\index ( label_, option ) -> ( index, label_, option )) options_
+    in
     Dropdown
         { dropdown
-            | options =
-                List.indexedMap (\index ( label_, option ) -> ( index, label_, option )) options_
+            | options = options__
+            , optionsCache = options__
         }
 
 
@@ -445,6 +455,22 @@ intOptions options_ =
 floatOptions : List Float -> Dropdown Float -> Dropdown Float
 floatOptions options_ =
     optionsBy String.fromFloat options_
+
+
+{-| Reset the dropdown.
+
+The selected option will be set to `Nothing`.
+The list of options will be reset to the last full list of options supplied
+if any options have been programmatically removed.
+
+-}
+reset : Dropdown option -> Dropdown option
+reset (Dropdown dropdown) =
+    Dropdown
+        { dropdown
+            | selected = Nothing
+            , options = dropdown.optionsCache
+        }
 
 
 {-| The type of filter to apply when [TextField](#InputType) is used as the
