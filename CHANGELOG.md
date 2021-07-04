@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [unreleased]
 
+- Nothing.
+
+## [2.0.1] - 2021-07-04
+
 ### Changed
 
 - make the width of the button label `El.fill` so that the user supplied label can be centered.
@@ -136,7 +140,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.0.0...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.0.1...HEAD
+[2.0.1]: https://github.com/phollyer/elm-ui-dropdown/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.8.1...2.0.0
 [1.8.1]: https://github.com/phollyer/elm-ui-dropdown/compare/1.8.0...1.8.1
 [1.8.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.7.1...1.8.0
