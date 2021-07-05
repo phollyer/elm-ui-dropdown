@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [unreleased]
 
-- Nothing.
+- improve UX - user can now close the menu by clicking the button directly after tabbing to it. (Final edge case).
 
 ## [2.1.1] - 2021-07-05
 
