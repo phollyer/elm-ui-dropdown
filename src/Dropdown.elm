@@ -191,7 +191,6 @@ type Dropdown option
         , text : String
         , selected : Maybe (Option option)
         , hovered : Maybe (Option option)
-        , onPressActivated : Bool
         , gotFocus : Bool
         , show : Bool
         , openOnEnter : Bool
@@ -246,7 +245,6 @@ init =
         , text = ""
         , selected = Nothing
         , hovered = Nothing
-        , onPressActivated = False
         , gotFocus = False
         , show = False
         , openOnEnter = False
@@ -975,11 +973,12 @@ type OutMsg option
 {-| This is an opaque type, pattern match on [OutMsg](#OutMsg).
 -}
 type Msg option
-    = OnMouseDown (Option option)
-    | OnMouseMove (Option option)
-    | OnMouseEnterOption (Option option)
-    | OnMouseEnter
+    = OnMouseEnter
+    | OnMouseDown
     | OnMouseLeave
+    | OnMouseDownOption (Option option)
+    | OnMouseMoveOption (Option option)
+    | OnMouseEnterOption (Option option)
     | OnChange String
     | BtnLabelFocus
     | GotFocus (Result Dom.Error ())
@@ -1026,42 +1025,6 @@ type Msg option
 update : Msg option -> Dropdown option -> ( Dropdown option, Cmd (Msg option), OutMsg option )
 update msg (Dropdown dropdown) =
     case msg of
-        OnMouseDown (( _, label_, _ ) as option) ->
-            ( Dropdown
-                { dropdown
-                    | selected = Just option
-                    , text = label_
-                }
-            , Cmd.none
-            , Selected option
-            )
-
-        OnMouseMove option ->
-            nothingToDo
-                (Dropdown
-                    { dropdown
-                        | hovered = Just option
-                        , navType = Just Mouse
-                    }
-                )
-
-        OnMouseEnterOption option ->
-            nothingToDo
-                (Dropdown
-                    { dropdown
-                        | hovered =
-                            case dropdown.navType of
-                                Just Keyboard ->
-                                    dropdown.hovered
-
-                                Just Mouse ->
-                                    Just option
-
-                                Nothing ->
-                                    Just option
-                    }
-                )
-
         OnMouseEnter ->
             if dropdown.openOnEnter then
                 ( Dropdown
@@ -1086,6 +1049,9 @@ update msg (Dropdown dropdown) =
             else
                 nothingToDo (Dropdown dropdown)
 
+        OnMouseDown ->
+            nothingToDo (Dropdown { dropdown | navType = Just Mouse })
+
         OnMouseLeave ->
             if dropdown.openOnEnter then
                 ( Dropdown { dropdown | show = False }
@@ -1095,6 +1061,42 @@ update msg (Dropdown dropdown) =
 
             else
                 nothingToDo (Dropdown dropdown)
+
+        OnMouseDownOption (( _, label_, _ ) as option) ->
+            ( Dropdown
+                { dropdown
+                    | selected = Just option
+                    , text = label_
+                }
+            , Cmd.none
+            , Selected option
+            )
+
+        OnMouseMoveOption option ->
+            nothingToDo
+                (Dropdown
+                    { dropdown
+                        | hovered = Just option
+                        , navType = Just Mouse
+                    }
+                )
+
+        OnMouseEnterOption option ->
+            nothingToDo
+                (Dropdown
+                    { dropdown
+                        | hovered =
+                            case dropdown.navType of
+                                Just Keyboard ->
+                                    dropdown.hovered
+
+                                Just Mouse ->
+                                    Just option
+
+                                Nothing ->
+                                    Just option
+                    }
+                )
 
         OnChange text_ ->
             ( Dropdown
@@ -1132,7 +1134,7 @@ update msg (Dropdown dropdown) =
             if dropdown.openOnEnter then
                 nothingToDo (Dropdown dropdown)
 
-            else if dropdown.onPressActivated || dropdown.navType == Just Mouse then
+            else if dropdown.navType == Just Mouse then
                 ( Dropdown { dropdown | show = show }
                 , Cmd.none
                 , if show then
@@ -1143,7 +1145,7 @@ update msg (Dropdown dropdown) =
                 )
 
             else
-                nothingToDo (Dropdown { dropdown | onPressActivated = True })
+                nothingToDo (Dropdown dropdown)
 
         OnFocus ->
             ( Dropdown
@@ -1151,8 +1153,12 @@ update msg (Dropdown dropdown) =
                     | matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
                     , gotFocus = True
                 }
-            , Process.sleep 0
-                |> Task.perform (\_ -> ShowMenu)
+            , if dropdown.navType /= Just Mouse then
+                Process.sleep 0
+                    |> Task.perform (\_ -> ShowMenu)
+
+              else
+                Cmd.none
             , FocusIn
             )
 
@@ -1160,8 +1166,8 @@ update msg (Dropdown dropdown) =
             ( Dropdown
                 { dropdown
                     | hovered = Nothing
-                    , onPressActivated = False
                     , gotFocus = False
+                    , navType = Nothing
                 }
             , Process.sleep 0
                 |> Task.perform (\_ -> HideMenu)
@@ -1195,7 +1201,7 @@ update msg (Dropdown dropdown) =
                     up (Dropdown dropdown)
 
                 40 ->
-                    down (Dropdown { dropdown | onPressActivated = True })
+                    down (Dropdown dropdown)
 
                 _ ->
                     nothingToDo (Dropdown dropdown)
@@ -1593,7 +1599,7 @@ view toMsg (Dropdown dropdown) =
                 let
                     button =
                         Input.button
-                            (attrs "button")
+                            (Event.onMouseDown OnMouseDown :: attrs "button")
                             { onPress =
                                 if dropdown.gotFocus then
                                     Just (BtnClick (not dropdown.show))
@@ -1711,9 +1717,9 @@ optionView (Dropdown dropdown) (( index, label_, _ ) as option) =
             , El.htmlAttribute <|
                 Attr.id (toOptionId index dropdown.id)
             , El.width El.fill
-            , Event.onMouseDown (OnMouseDown option)
+            , Event.onMouseDown (OnMouseDownOption option)
             , Event.onMouseEnter (OnMouseEnterOption option)
-            , Event.onMouseMove (OnMouseMove option)
+            , Event.onMouseMove (OnMouseMoveOption option)
             ]
             (if dropdown.selected == Just option then
                 List.append
