@@ -191,6 +191,7 @@ type Dropdown option
         , text : String
         , selected : Maybe (Option option)
         , hovered : Maybe (Option option)
+        , onPressActivated : Bool
         , gotFocus : Bool
         , show : Bool
         , openOnEnter : Bool
@@ -245,6 +246,7 @@ init =
         , text = ""
         , selected = Nothing
         , hovered = Nothing
+        , onPressActivated = False
         , gotFocus = False
         , show = False
         , openOnEnter = False
@@ -981,7 +983,7 @@ type Msg option
     | OnChange String
     | BtnLabelFocus
     | GotFocus (Result Dom.Error ())
-    | BtnClick
+    | BtnClick Bool
     | OnFocus
     | ShowMenu
     | HideMenu
@@ -1121,32 +1123,33 @@ update msg (Dropdown dropdown) =
             ( Dropdown
                 { dropdown
                     | show = True
-                    , gotFocus = True
                 }
             , Cmd.none
             , Opened
             )
 
-        BtnClick ->
+        BtnClick show ->
             if dropdown.openOnEnter then
                 nothingToDo (Dropdown dropdown)
 
-            else
-                ( Dropdown { dropdown | show = not dropdown.show }
+            else if dropdown.onPressActivated || dropdown.navType == Just Mouse then
+                ( Dropdown { dropdown | show = show }
                 , Cmd.none
-                , if not dropdown.show then
+                , if show then
                     Opened
 
                   else
                     Closed
                 )
 
+            else
+                nothingToDo (Dropdown { dropdown | onPressActivated = True })
+
         OnFocus ->
             ( Dropdown
                 { dropdown
                     | matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
                     , gotFocus = True
-                    , show = True
                 }
             , Process.sleep 0
                 |> Task.perform (\_ -> ShowMenu)
@@ -1157,6 +1160,7 @@ update msg (Dropdown dropdown) =
             ( Dropdown
                 { dropdown
                     | hovered = Nothing
+                    , onPressActivated = False
                     , gotFocus = False
                 }
             , Process.sleep 0
@@ -1165,7 +1169,10 @@ update msg (Dropdown dropdown) =
             )
 
         ShowMenu ->
-            ( Dropdown { dropdown | show = True }
+            ( Dropdown
+                { dropdown
+                    | show = True
+                }
             , Cmd.none
             , Opened
             )
@@ -1188,7 +1195,7 @@ update msg (Dropdown dropdown) =
                     up (Dropdown dropdown)
 
                 40 ->
-                    down (Dropdown dropdown)
+                    down (Dropdown { dropdown | onPressActivated = True })
 
                 _ ->
                     nothingToDo (Dropdown dropdown)
@@ -1589,7 +1596,7 @@ view toMsg (Dropdown dropdown) =
                             (attrs "button")
                             { onPress =
                                 if dropdown.gotFocus then
-                                    Just BtnClick
+                                    Just (BtnClick (not dropdown.show))
 
                                 else
                                     Nothing

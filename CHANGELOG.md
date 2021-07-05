@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Nothing.
 
+## [2.1.1] - 2021-07-05
+
+### Fixed
+
+- prevent the menu from flickering open in certain circumstances.
+- ensure the button's `onPress` event is only active after the button receives focus.
+
 ## [2.1.0] - 2021-07-04
 
 ### Added
@@ -146,7 +153,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.0...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.1...HEAD
+[2.1.1]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/phollyer/elm-ui-dropdown/compare/2.0.1...2.1.0
 [2.0.1]: https://github.com/phollyer/elm-ui-dropdown/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/phollyer/elm-ui-dropdown/compare/1.8.1...2.0.0
