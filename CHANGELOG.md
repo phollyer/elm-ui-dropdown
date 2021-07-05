@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [unreleased]
 
+- nothing.
+
+## [2.1.2] - 2021-07-05
+
 - improve UX - user can now close the menu by clicking the button directly after tabbing to it. (Final edge case).
+- improve `OutMsg`'s - change a couple to more accurately reflect the current state.
 
 ## [2.1.1] - 2021-07-05
 
@@ -153,7 +158,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.1...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.2...HEAD
+[2.1.2]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.1...2.1.2
 [2.1.1]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/phollyer/elm-ui-dropdown/compare/2.0.1...2.1.0
 [2.0.1]: https://github.com/phollyer/elm-ui-dropdown/compare/2.0.0...2.0.1
