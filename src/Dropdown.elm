@@ -141,7 +141,6 @@ import Element.Input as Input exposing (Placeholder)
 import Html.Attributes as Attr
 import Html.Events exposing (keyCode, on)
 import Json.Decode as Json
-import Process
 import Task
 
 
@@ -1029,21 +1028,23 @@ update msg (Dropdown dropdown) =
             if dropdown.openOnEnter then
                 ( Dropdown
                     { dropdown
-                        | show = True
-                        , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
+                        | matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
                     }
-                , Task.attempt GotFocus <|
-                    Dom.focus
-                        (dropdown.id
-                            ++ (case dropdown.inputType of
-                                    Button ->
-                                        "-button"
+                , Cmd.batch
+                    [ perform ShowMenu
+                    , Task.attempt GotFocus <|
+                        Dom.focus
+                            (dropdown.id
+                                ++ (case dropdown.inputType of
+                                        Button ->
+                                            "-button"
 
-                                    TextField ->
-                                        "-text-field"
-                               )
-                        )
-                , Opened
+                                        TextField ->
+                                            "-text-field"
+                                   )
+                            )
+                    ]
+                , NoOp
                 )
 
             else
@@ -1054,9 +1055,9 @@ update msg (Dropdown dropdown) =
 
         OnMouseLeave ->
             if dropdown.openOnEnter then
-                ( Dropdown { dropdown | show = False }
-                , Cmd.none
-                , Closed
+                ( Dropdown dropdown
+                , perform HideMenu
+                , NoOp
                 )
 
             else
@@ -1106,8 +1107,7 @@ update msg (Dropdown dropdown) =
                     , hovered = Nothing
                     , selected = Nothing
                 }
-            , Process.sleep 0
-                |> Task.perform (\_ -> ShowMenu)
+            , perform ShowMenu
             , TextChanged text_
             )
 
@@ -1118,16 +1118,13 @@ update msg (Dropdown dropdown) =
                 }
             , Task.attempt GotFocus <|
                 Dom.focus (dropdown.id ++ "-button")
-            , FocusIn
+            , NoOp
             )
 
         GotFocus _ ->
-            ( Dropdown
-                { dropdown
-                    | show = True
-                }
-            , Cmd.none
-            , Opened
+            ( Dropdown dropdown
+            , perform ShowMenu
+            , FocusIn
             )
 
         BtnClick show ->
@@ -1154,8 +1151,7 @@ update msg (Dropdown dropdown) =
                     , gotFocus = True
                 }
             , if dropdown.navType /= Just Mouse then
-                Process.sleep 0
-                    |> Task.perform (\_ -> ShowMenu)
+                perform ShowMenu
 
               else
                 Cmd.none
@@ -1169,16 +1165,12 @@ update msg (Dropdown dropdown) =
                     , gotFocus = False
                     , navType = Nothing
                 }
-            , Process.sleep 0
-                |> Task.perform (\_ -> HideMenu)
+            , perform HideMenu
             , FocusOut
             )
 
         ShowMenu ->
-            ( Dropdown
-                { dropdown
-                    | show = True
-                }
+            ( Dropdown { dropdown | show = True }
             , Cmd.none
             , Opened
             )
@@ -1269,6 +1261,12 @@ update msg (Dropdown dropdown) =
 
         PositionElement _ ->
             nothingToDo (Dropdown dropdown)
+
+
+perform : Msg option -> Cmd (Msg option)
+perform msg =
+    Task.perform (\_ -> msg) <|
+        Task.succeed ()
 
 
 updateMatchedOptions : FilterType -> String -> List (Option option) -> List (Option option)
