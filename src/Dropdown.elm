@@ -1086,16 +1086,7 @@ update msg (Dropdown dropdown) =
             nothingToDo
                 (Dropdown
                     { dropdown
-                        | hovered =
-                            case dropdown.navType of
-                                Just Keyboard ->
-                                    dropdown.hovered
-
-                                Just Mouse ->
-                                    Just option
-
-                                Nothing ->
-                                    Just option
+                        | hovered = Just option
                     }
                 )
 
