@@ -140,6 +140,7 @@ import Element.Font as Font
 import Element.Input as Input exposing (Placeholder)
 import Html.Attributes as Attr
 import Html.Events exposing (keyCode, on)
+import Html.Events.Extra.Touch as Touch
 import Json.Decode as Json
 import Task
 
@@ -205,6 +206,7 @@ type alias Option option =
 type NavType
     = Keyboard
     | Mouse
+    | Touch
 
 
 {-| Initialize a dropdown on your model.
@@ -972,7 +974,8 @@ type OutMsg option
 {-| This is an opaque type, pattern match on [OutMsg](#OutMsg).
 -}
 type Msg option
-    = OnMouseEnter
+    = OnTouchStart
+    | OnMouseEnter
     | OnMouseDown
     | OnMouseLeave
     | OnMouseDownOption (Option option)
@@ -1024,6 +1027,22 @@ type Msg option
 update : Msg option -> Dropdown option -> ( Dropdown option, Cmd (Msg option), OutMsg option )
 update msg (Dropdown dropdown) =
     case msg of
+        OnTouchStart ->
+            if dropdown.show then
+                nothingToDo (Dropdown { dropdown | show = False })
+
+            else
+                ( Dropdown
+                    { dropdown
+                        | navType = Just Touch
+                        , gotFocus = True
+                        , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
+                    }
+                , Task.attempt GotFocus <|
+                    Dom.focus (dropdown.id ++ "-button")
+                , NoOp
+                )
+
         OnMouseEnter ->
             if dropdown.openOnEnter then
                 ( Dropdown
@@ -1588,7 +1607,12 @@ view toMsg (Dropdown dropdown) =
                 let
                     button =
                         Input.button
-                            (Event.onMouseDown OnMouseDown :: attrs "button")
+                            ([ Event.onMouseDown OnMouseDown
+                             , El.htmlAttribute <|
+                                Touch.onStart (\_ -> OnTouchStart)
+                             ]
+                                ++ attrs "button"
+                            )
                             { onPress =
                                 if dropdown.gotFocus then
                                     Just (BtnClick (not dropdown.show))
