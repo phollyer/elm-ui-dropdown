@@ -1029,7 +1029,10 @@ update msg (Dropdown dropdown) =
     case msg of
         OnTouchStart ->
             if dropdown.show then
-                nothingToDo (Dropdown { dropdown | show = False })
+                ( Dropdown { dropdown | show = False }
+                , Cmd.none
+                , Closed
+                )
 
             else
                 ( Dropdown
