@@ -14,6 +14,7 @@ module Dropdown exposing
     , openOnMouseEnter, open, close
     , selected, selectedOption, selectedLabel, list, listOptions, listLabels, text, isOpen, getId
     , OutMsg(..), Msg, update
+    , subscriptions
     , view
     )
 
@@ -124,6 +125,11 @@ Filtering is currently case insensitive.
 @docs OutMsg, Msg, update
 
 
+## Subscriptions
+
+@docs subscriptions
+
+
 ## View
 
 @docs view
@@ -131,6 +137,7 @@ Filtering is currently case insensitive.
 -}
 
 import Browser.Dom as Dom
+import Browser.Events exposing (onResize)
 import Element as El exposing (Attribute, Element)
 import Element.Background as Background
 import Element.Border as Border
@@ -974,7 +981,8 @@ type OutMsg option
 {-| This is an opaque type, pattern match on [OutMsg](#OutMsg).
 -}
 type Msg option
-    = OnTouchStart
+    = OnResize Int Int
+    | OnTouchStart
     | OnMouseEnter
     | OnMouseDown
     | OnMouseLeave
@@ -1027,6 +1035,18 @@ type Msg option
 update : Msg option -> Dropdown option -> ( Dropdown option, Cmd (Msg option), OutMsg option )
 update msg (Dropdown dropdown) =
     case msg of
+        OnResize _ _ ->
+            ( Dropdown dropdown
+            , Task.attempt GotFocus <|
+                Dom.focus <|
+                    if dropdown.inputType == Button then
+                        dropdown.id ++ "-button"
+
+                    else
+                        dropdown.id ++ "-text-field"
+            , NoOp
+            )
+
         OnTouchStart ->
             if dropdown.show then
                 ( Dropdown { dropdown | show = False }
@@ -1312,6 +1332,31 @@ updateMatchedOptions filterType_ val options_ =
 nothingToDo : Dropdown option -> ( Dropdown option, Cmd (Msg option), OutMsg option )
 nothingToDo dropdown =
     ( dropdown, Cmd.none, NoOp )
+
+
+
+{- Subscriptions -}
+
+
+{-| Subscribe to the browser `onResize` event.
+
+When the orientation changes on some mobile devices the dropdown can lose
+focus, resulting in it failing to close if the user taps outside the
+dropdown.
+
+Subscribing to this `subscription` results in the dropdown regaining focus
+when the orientation changes so that the user experience doesn't change.
+
+This subscription is only active when the dropdown is open.
+
+-}
+subscriptions : Dropdown option -> Sub (Msg option)
+subscriptions (Dropdown dropdown) =
+    if dropdown.show then
+        onResize OnResize
+
+    else
+        Sub.none
 
 
 

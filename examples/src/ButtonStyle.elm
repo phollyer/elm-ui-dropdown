@@ -71,6 +71,12 @@ update msg model =
             )
 
 
+subscriptions :Model -> Sub Msg 
+subscriptions model =
+    Dropdown.subscriptions model.personDropdown
+        |> Sub.map DropdownMsg
+
+
 view : Model -> Html Msg
 view model =
     El.layout
@@ -91,5 +97,5 @@ main =
         { init = init
         , update = update
         , view = view
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         }
