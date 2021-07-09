@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - nothing.
 
+## [2.2.0] - 2021-07-09
+
+### Fixed
+
+- mobile device bug causing the dropdown to lose focus when the orientation changes. Fixed by adding a `subscription` to `Browser.Events.onResize` which only runs when the dropdown is open.
+
 ## [2.1.3] - 2021-07-06
 
 ### Added
@@ -164,7 +170,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.3...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.2.0...HEAD
+[2.2.0]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.3...2.2.0
 [2.1.3]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.2...2.1.3
 [2.1.2]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.1...2.1.2
 [2.1.1]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.0...2.1.1
