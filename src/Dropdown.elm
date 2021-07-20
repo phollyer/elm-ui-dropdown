@@ -983,6 +983,7 @@ type OutMsg option
 type Msg option
     = OnResize Int Int
     | OnTouchStart
+    | OnTouchEnd
     | OnMouseEnter
     | OnMouseDown
     | OnMouseLeave
@@ -1048,6 +1049,9 @@ update msg (Dropdown dropdown) =
             )
 
         OnTouchStart ->
+            nothingToDo (Dropdown dropdown)
+
+        OnTouchEnd ->
             if dropdown.show then
                 ( Dropdown { dropdown | show = False }
                 , Cmd.none
@@ -1658,6 +1662,8 @@ view toMsg (Dropdown dropdown) =
                             ([ Event.onMouseDown OnMouseDown
                              , El.htmlAttribute <|
                                 Touch.onStart (\_ -> OnTouchStart)
+                             , El.htmlAttribute <|
+                                Touch.onEnd (\_ -> OnTouchEnd)
                              ]
                                 ++ attrs "button"
                             )
