@@ -203,6 +203,7 @@ type Dropdown option
         , openOnEnter : Bool
         , matchedOptions : List (Option option)
         , navType : Maybe NavType
+        , menuTouchActive : Bool
         }
 
 
@@ -258,6 +259,7 @@ init =
         , openOnEnter = False
         , matchedOptions = []
         , navType = Nothing
+        , menuTouchActive = False
         }
 
 
@@ -982,8 +984,10 @@ type OutMsg option
 -}
 type Msg option
     = OnResize Int Int
-    | OnTouchStart
-    | OnTouchEnd
+    | OnTouchButtonStart
+    | OnTouchButtonEnd
+    | OnTouchMenuStart
+    | OnTouchMenuEnd
     | OnMouseEnter
     | OnMouseDown
     | OnMouseLeave
@@ -1048,27 +1052,37 @@ update msg (Dropdown dropdown) =
             , NoOp
             )
 
-        OnTouchStart ->
+        OnTouchButtonStart ->
             nothingToDo (Dropdown dropdown)
 
-        OnTouchEnd ->
-            if dropdown.show then
-                ( Dropdown { dropdown | show = False }
-                , Cmd.none
-                , Closed
-                )
+        OnTouchButtonEnd ->
+            if not dropdown.menuTouchActive then
+                if dropdown.show then
+                    ( Dropdown { dropdown | show = False }
+                    , Cmd.none
+                    , Closed
+                    )
+
+                else
+                    ( Dropdown
+                        { dropdown
+                            | navType = Just Touch
+                            , gotFocus = True
+                            , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
+                        }
+                    , Task.attempt GotFocus <|
+                        Dom.focus (dropdown.id ++ "-button")
+                    , NoOp
+                    )
 
             else
-                ( Dropdown
-                    { dropdown
-                        | navType = Just Touch
-                        , gotFocus = True
-                        , matchedOptions = updateMatchedOptions dropdown.filterType dropdown.text dropdown.options
-                    }
-                , Task.attempt GotFocus <|
-                    Dom.focus (dropdown.id ++ "-button")
-                , NoOp
-                )
+                nothingToDo (Dropdown dropdown)
+
+        OnTouchMenuStart ->
+            nothingToDo (Dropdown { dropdown | menuTouchActive = True })
+
+        OnTouchMenuEnd ->
+            nothingToDo (Dropdown { dropdown | menuTouchActive = False })
 
         OnMouseEnter ->
             if dropdown.openOnEnter then
@@ -1661,9 +1675,9 @@ view toMsg (Dropdown dropdown) =
                         Input.button
                             ([ Event.onMouseDown OnMouseDown
                              , El.htmlAttribute <|
-                                Touch.onStart (\_ -> OnTouchStart)
+                                Touch.onStart (\_ -> OnTouchButtonStart)
                              , El.htmlAttribute <|
-                                Touch.onEnd (\_ -> OnTouchEnd)
+                                Touch.onEnd (\_ -> OnTouchButtonEnd)
                              ]
                                 ++ attrs "button"
                             )
@@ -1755,10 +1769,16 @@ menuView (Dropdown dropdown) =
                     , Border.color black
                     , Border.width 1
                     , Border.rounded 5
-                    , El.htmlAttribute <|
-                        Attr.id (dropdown.id ++ "-menu")
                     , El.height <|
                         El.maximum dropdown.maxHeight El.shrink
+                    , El.htmlAttribute <|
+                        Attr.id (dropdown.id ++ "-menu")
+                    , El.htmlAttribute <|
+                        Touch.onWithOptions "touchstart" { stopPropagation = True, preventDefault = False } <|
+                            \_ -> OnTouchMenuStart
+                    , El.htmlAttribute <|
+                        Touch.onWithOptions "touchend" { stopPropagation = True, preventDefault = False } <|
+                            \_ -> OnTouchMenuEnd
                     , El.scrollbarY
                     , El.width El.fill
                     , Font.color black
