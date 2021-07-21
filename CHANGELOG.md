@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - nothing.
 
+## [2.2.1] - 2021-07-21
+
+### Fixed
+
+- edge case where the menu may close after scrolling on touch devices - specifically when the finger moves out of the menu and over the button
+
 ## [2.2.0] - 2021-07-09
 
 ### Fixed
@@ -22,7 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.1.2] - 2021-07-05
 
-- improve UX - user can now close the menu by clicking the button directly after tabbing to it. (Final edge case).
+- improve UX - user can now close the menu by clicking the button directly after tabbing to it.
 - improve `OutMsg`'s - change a couple to more accurately reflect the current state.
 
 ## [2.1.1] - 2021-07-05
@@ -170,7 +176,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.2.0...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.2.1...HEAD
+[2.2.1]: https://github.com/phollyer/elm-ui-dropdown/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.3...2.2.0
 [2.1.3]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.2...2.1.3
 [2.1.2]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.1...2.1.2
