@@ -1,13 +1,13 @@
 module Dropdown exposing
     ( Dropdown, init, id
     , InputType(..), inputType
-    , optionsBy, options, stringOptions, intOptions, floatOptions, reset
+    , optionsBy, options, stringOptions, intOptions, floatOptions, Option(..), elementOptions, reset
     , label, labelHidden, buttonLabel
     , placeholder
     , Placement(..)
     , labelPlacement, labelSpacing
     , menuPlacement, menuSpacing
-    , maxHeight, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
+    , maxHeight, labelAttributes, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
     , FilterType(..), filterType
     , setSelected, removeSelected, removeOption
     , setSelectedLabel
@@ -66,7 +66,7 @@ changes to the model can be captured.
 If you set these in your `view` code they will have no effect and so no menu
 will appear.
 
-@docs optionsBy, options, stringOptions, intOptions, floatOptions, reset
+@docs optionsBy, options, stringOptions, intOptions, floatOptions, Option, elementOptions, reset
 
 
 ### Label
@@ -90,7 +90,7 @@ will appear.
 
 ### Size & Style
 
-@docs maxHeight, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
+@docs maxHeight, labelAttributes, inputAttributes, menuAttributes, optionAttributes, optionHoverAttributes, optionSelectedAttributes
 
 
 ### Filtering
@@ -190,6 +190,7 @@ type Dropdown option
         , buttonLabel : Element (Msg option)
         , placeholder : Maybe (Placeholder (Msg option))
         , maxHeight : Int
+        , labelAttributes : List (Attribute (Msg option))
         , inputAttributes : List (Attribute (Msg option))
         , menuAttributes : List (Attribute (Msg option))
         , optionAttributes : List (Attribute (Msg option))
@@ -207,8 +208,10 @@ type Dropdown option
         }
 
 
-type alias Option option =
-    ( Int, String, option )
+{-| -}
+type Option option
+    = Option ( Int, String, option )
+    | Element ( Int, Element (Msg option), option )
 
 
 type NavType
@@ -246,6 +249,7 @@ init =
                 (El.text "-- Select --")
         , placeholder = Nothing
         , maxHeight = 150
+        , labelAttributes = []
         , inputAttributes = []
         , menuAttributes = []
         , optionAttributes = []
@@ -345,7 +349,7 @@ optionsBy : (option -> String) -> List option -> Dropdown option -> Dropdown opt
 optionsBy accessorFunc options_ (Dropdown dropdown) =
     let
         options__ =
-            List.indexedMap (\index option -> ( index, accessorFunc option, option )) options_
+            List.indexedMap (\index option -> Option ( index, accessorFunc option, option )) options_
     in
     Dropdown
         { dropdown
@@ -386,7 +390,7 @@ options : List ( String, option ) -> Dropdown option -> Dropdown option
 options options_ (Dropdown dropdown) =
     let
         options__ =
-            List.indexedMap (\index ( label_, option ) -> ( index, label_, option )) options_
+            List.indexedMap (\index ( label_, option ) -> Option ( index, label_, option )) options_
     in
     Dropdown
         { dropdown
@@ -465,6 +469,20 @@ intOptions options_ =
 floatOptions : List Float -> Dropdown Float -> Dropdown Float
 floatOptions options_ =
     optionsBy String.fromFloat options_
+
+
+{-| -}
+elementOptions : List ( Element (Msg option), option ) -> Dropdown option -> Dropdown option
+elementOptions options_ (Dropdown dropdown) =
+    let
+        options__ =
+            List.indexedMap (\index ( element, option ) -> Element ( index, element, option )) options_
+    in
+    Dropdown
+        { dropdown
+            | options = options__
+            , optionsCache = options__
+        }
 
 
 {-| Reset the dropdown.
@@ -649,6 +667,15 @@ maxHeight height (Dropdown dropdown) =
 
 {-| The
 [Attributes](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element#Attribute)
+to set on the label.
+-}
+labelAttributes : List (Attribute (Msg option)) -> Dropdown option -> Dropdown option
+labelAttributes attrs (Dropdown dropdown) =
+    Dropdown { dropdown | labelAttributes = attrs }
+
+
+{-| The
+[Attributes](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element#Attribute)
 to set on the [InputType](#InputType).
 -}
 inputAttributes : List (Attribute (Msg option)) -> Dropdown option -> Dropdown option
@@ -717,19 +744,21 @@ setSelected maybeOption (Dropdown dropdown) =
         Just option ->
             let
                 maybeSelected =
-                    List.filter (\( _, _, option_ ) -> option_ == option) dropdown.options
+                    List.filter
+                        (\optionType ->
+                            case optionType of
+                                Option ( _, _, option_ ) ->
+                                    option_ == option
+
+                                Element ( _, _, option_ ) ->
+                                    option_ == option
+                        )
+                        dropdown.options
                         |> List.head
             in
             Dropdown
                 { dropdown
                     | selected = maybeSelected
-                    , text =
-                        case maybeSelected of
-                            Just ( _, label_, _ ) ->
-                                label_
-
-                            Nothing ->
-                                ""
                 }
 
 
@@ -757,7 +786,16 @@ setSelectedLabel maybeLabel (Dropdown dropdown) =
         Just label_ ->
             let
                 maybeSelected =
-                    List.filter (\( _, l, _ ) -> l == label_) dropdown.options
+                    List.filter
+                        (\optionType ->
+                            case optionType of
+                                Option ( _, l, _ ) ->
+                                    l == label_
+
+                                _ ->
+                                    False
+                        )
+                        dropdown.options
                         |> List.head
             in
             Dropdown
@@ -765,8 +803,11 @@ setSelectedLabel maybeLabel (Dropdown dropdown) =
                     | selected = maybeSelected
                     , text =
                         case maybeSelected of
-                            Just ( _, l, _ ) ->
+                            Just (Option ( _, l, _ )) ->
                                 l
+
+                            Just (Element _) ->
+                                ""
 
                             Nothing ->
                                 ""
@@ -801,11 +842,26 @@ removeSelected (Dropdown dropdown) (Dropdown fromDropdown) =
         Nothing ->
             Dropdown fromDropdown
 
-        Just ( _, _, option ) ->
+        Just optionType1 ->
             Dropdown
                 { fromDropdown
                     | options =
-                        List.filter (\( _, _, option_ ) -> option /= option_) fromDropdown.options
+                        List.filter
+                            (\optionType2 ->
+                                case ( optionType1, optionType2 ) of
+                                    ( Option ( _, _, option1 ), Option ( _, _, option2 ) ) ->
+                                        option1 /= option2
+
+                                    ( Element ( _, _, option1 ), Element ( _, _, option2 ) ) ->
+                                        option1 /= option2
+
+                                    ( Option ( _, _, option1 ), Element ( _, _, option2 ) ) ->
+                                        option1 /= option2
+
+                                    ( Element ( _, _, option1 ), Option ( _, _, option2 ) ) ->
+                                        option1 /= option2
+                            )
+                            fromDropdown.options
                 }
 
 
@@ -824,9 +880,27 @@ removeOption option (Dropdown dropdown) =
     Dropdown
         { dropdown
             | options =
-                List.filter (\( _, _, option_ ) -> option /= option_) dropdown.options
+                List.filter
+                    (\optionType ->
+                        case optionType of
+                            Option ( _, _, option_ ) ->
+                                option /= option_
+
+                            Element ( _, _, option_ ) ->
+                                option /= option_
+                    )
+                    dropdown.options
             , matchedOptions =
-                List.filter (\( _, _, option_ ) -> option /= option_) dropdown.matchedOptions
+                List.filter
+                    (\optionType ->
+                        case optionType of
+                            Option ( _, _, option_ ) ->
+                                option /= option_
+
+                            Element ( _, _, option_ ) ->
+                                option /= option_
+                    )
+                    dropdown.matchedOptions
         }
 
 
@@ -879,7 +953,7 @@ If a `Just` is returned, it consists of the following:
   - `option`: The option value itself.
 
 -}
-selected : Dropdown option -> Maybe ( Int, String, option )
+selected : Dropdown option -> Maybe (Option option)
 selected (Dropdown dropdown) =
     dropdown.selected
 
@@ -888,14 +962,32 @@ selected (Dropdown dropdown) =
 -}
 selectedOption : Dropdown option -> Maybe option
 selectedOption =
-    selected >> Maybe.map (\( _, _, option ) -> option)
+    selected
+        >> Maybe.map
+            (\optionType ->
+                case optionType of
+                    Option ( _, _, option ) ->
+                        option
+
+                    Element ( _, _, option ) ->
+                        option
+            )
 
 
 {-| Maybe retrieve the label for the selected option.
 -}
 selectedLabel : Dropdown option -> Maybe String
 selectedLabel =
-    selected >> Maybe.map (\( _, label_, _ ) -> label_)
+    selected
+        >> Maybe.map
+            (\optionType ->
+                case optionType of
+                    Option ( _, label_, _ ) ->
+                        label_
+
+                    Element _ ->
+                        ""
+            )
 
 
 {-| List all the `option` information. The tuples returned represent:
@@ -905,7 +997,7 @@ selectedLabel =
   - option - the `option` itself
 
 -}
-list : Dropdown option -> List ( Int, String, option )
+list : Dropdown option -> List (Option option)
 list (Dropdown dropdown) =
     dropdown.options
 
@@ -914,14 +1006,32 @@ list (Dropdown dropdown) =
 -}
 listOptions : Dropdown option -> List option
 listOptions (Dropdown dropdown) =
-    List.map (\( _, _, option ) -> option) dropdown.options
+    List.map
+        (\optionType ->
+            case optionType of
+                Option ( _, _, option ) ->
+                    option
+
+                Element ( _, _, option ) ->
+                    option
+        )
+        dropdown.options
 
 
 {-| List all the labels for each option.
 -}
 listLabels : Dropdown option -> List String
 listLabels (Dropdown dropdown) =
-    List.map (\( _, label_, _ ) -> label_) dropdown.options
+    List.map
+        (\optionType ->
+            case optionType of
+                Option ( _, label_, _ ) ->
+                    label_
+
+                Element _ ->
+                    ""
+        )
+        dropdown.options
 
 
 {-| Get the text entered in the [TextField](#InputType).
@@ -943,6 +1053,16 @@ isOpen (Dropdown dropdown) =
 getId : Dropdown option -> String
 getId (Dropdown dropdown) =
     dropdown.id
+
+
+toIndex : Option option -> Int
+toIndex option =
+    case option of
+        Option ( index, _, _ ) ->
+            index
+
+        Element ( index, _, _ ) ->
+            index
 
 
 
@@ -972,7 +1092,7 @@ that occured.
 -}
 type OutMsg option
     = NoOp
-    | Selected ( Int, String, option )
+    | Selected (Option option)
     | TextChanged String
     | FocusIn
     | FocusOut
@@ -1123,11 +1243,20 @@ update msg (Dropdown dropdown) =
             else
                 nothingToDo (Dropdown dropdown)
 
-        OnMouseDownOption (( _, label_, _ ) as option) ->
+        OnMouseDownOption ((Option ( _, label_, _ )) as option) ->
             ( Dropdown
                 { dropdown
                     | selected = Just option
                     , text = label_
+                }
+            , Cmd.none
+            , Selected option
+            )
+
+        OnMouseDownOption ((Element _) as option) ->
+            ( Dropdown
+                { dropdown
+                    | selected = Just option
                 }
             , Cmd.none
             , Selected option
@@ -1323,8 +1452,13 @@ perform msg =
 updateMatchedOptions : FilterType -> String -> List (Option option) -> List (Option option)
 updateMatchedOptions filterType_ val options_ =
     let
-        setIndex index ( _, label_, option ) =
-            ( index, label_, option )
+        setIndex index optionType =
+            case optionType of
+                Option ( _, label_, option ) ->
+                    Option ( index, label_, option )
+
+                Element ( _, el, option ) ->
+                    Element ( index, el, option )
 
         setIndices : List (Option option) -> List (Option option)
         setIndices =
@@ -1395,7 +1529,7 @@ escape (Dropdown dropdown) =
 enter : Dropdown option -> ( Dropdown option, Cmd (Msg option), OutMsg option )
 enter (Dropdown dropdown) =
     case ( dropdown.show, dropdown.hovered ) of
-        ( True, Just (( _, label_, _ ) as option) ) ->
+        ( True, Just ((Option ( _, label_, _ )) as option) ) ->
             ( Dropdown
                 { dropdown
                     | selected = dropdown.hovered
@@ -1410,7 +1544,16 @@ enter (Dropdown dropdown) =
         ( True, Nothing ) ->
             let
                 selected_ =
-                    List.filter (\( _, label_, _ ) -> label_ == dropdown.text) dropdown.matchedOptions
+                    List.filter
+                        (\optionType ->
+                            case optionType of
+                                Option ( _, label_, _ ) ->
+                                    label_ == dropdown.text
+
+                                Element _ ->
+                                    False
+                        )
+                        dropdown.matchedOptions
                         |> List.head
             in
             ( Dropdown
@@ -1455,12 +1598,25 @@ down (Dropdown dropdown) =
             , NoOp
             )
 
-        Just ( index, _, _ ) ->
+        Just optionType ->
+            let
+                index =
+                    toIndex optionType
+            in
             if dropdown.show == True && index < List.length dropdown.matchedOptions - 1 then
                 ( Dropdown
                     { dropdown
                         | hovered =
-                            List.filter (\( i, _, _ ) -> i == index + 1) dropdown.matchedOptions
+                            List.filter
+                                (\optionType_ ->
+                                    case optionType_ of
+                                        Option ( i, _, _ ) ->
+                                            i == index + 1
+
+                                        Element ( i, _, _ ) ->
+                                            i == index + 1
+                                )
+                                dropdown.matchedOptions
                                 |> List.head
                         , navType = Just Keyboard
                     }
@@ -1484,12 +1640,25 @@ up (Dropdown dropdown) =
         Nothing ->
             nothingToDo (Dropdown dropdown)
 
-        Just ( index, _, _ ) ->
+        Just optionType ->
+            let
+                index =
+                    toIndex optionType
+            in
             if index > 0 then
                 ( Dropdown
                     { dropdown
                         | hovered =
-                            List.filter (\( i, _, _ ) -> i == index - 1) dropdown.matchedOptions
+                            List.filter
+                                (\optionType_ ->
+                                    case optionType_ of
+                                        Option ( i, _, _ ) ->
+                                            i == index - 1
+
+                                        Element ( i, _, _ ) ->
+                                            i == index
+                                )
+                                dropdown.matchedOptions
                                 |> List.head
                         , navType = Just Keyboard
                     }
@@ -1547,9 +1716,14 @@ filter condFunc val =
             String.toLower val
     in
     List.filter
-        (\( _, label_, _ ) ->
-            String.toLower label_
-                |> condFunc val_
+        (\optionType ->
+            case optionType of
+                Option ( _, label_, _ ) ->
+                    String.toLower label_
+                        |> condFunc val_
+
+                Element _ ->
+                    False
         )
 
 
@@ -1692,18 +1866,23 @@ view toMsg (Dropdown dropdown) =
                                     Nothing ->
                                         dropdown.buttonLabel
 
-                                    Just ( _, label_, _ ) ->
+                                    Just (Option ( _, label_, _ )) ->
                                         El.el
                                             [ El.centerX ]
                                             (El.text label_)
+
+                                    Just (Element ( _, element, _ )) ->
+                                        element
                             }
 
                     buttonLabel_ =
                         El.el
-                            [ El.width El.fill
-                            , Event.onClick BtnLabelFocus
-                            , labelPadding
-                            ]
+                            ([ El.width El.fill
+                             , Event.onClick BtnLabelFocus
+                             , labelPadding
+                             ]
+                                ++ dropdown.labelAttributes
+                            )
                             dropdown.label
 
                     column =
@@ -1793,22 +1972,40 @@ menuView (Dropdown dropdown) =
 
 
 optionView : Dropdown option -> Option option -> Element (Msg option)
-optionView (Dropdown dropdown) (( index, label_, _ ) as option) =
+optionView (Dropdown dropdown) option =
+    let
+        optionsMatch maybeOption =
+            case ( maybeOption, option ) of
+                ( Just (Option ( _, _, option1 )), Option ( _, _, option2 ) ) ->
+                    option1 == option2
+
+                ( Just (Element ( _, _, option1 )), Element ( _, _, option2 ) ) ->
+                    option1 == option2
+
+                ( Just (Option ( _, _, option1 )), Element ( _, _, option2 ) ) ->
+                    option1 == option2
+
+                ( Just (Element ( _, _, option1 )), Option ( _, _, option2 ) ) ->
+                    option1 == option2
+
+                ( Nothing, _ ) ->
+                    False
+    in
     El.el
         (List.append
-            [ if dropdown.selected == Just option then
+            [ if optionsMatch dropdown.selected then
                 Cursor.default
 
               else
                 Cursor.pointer
             , El.htmlAttribute <|
-                Attr.id (toOptionId index dropdown.id)
+                Attr.id (toOptionId (toIndex option) dropdown.id)
             , El.width El.fill
             , Event.onMouseDown (OnMouseDownOption option)
             , Event.onMouseEnter (OnMouseEnterOption option)
             , Event.onMouseMove (OnMouseMoveOption option)
             ]
-            (if dropdown.selected == Just option then
+            (if optionsMatch dropdown.selected then
                 List.append
                     [ Background.color black
                     , Font.color white
@@ -1816,7 +2013,7 @@ optionView (Dropdown dropdown) (( index, label_, _ ) as option) =
                     ]
                     dropdown.optionSelectedAttributes
 
-             else if dropdown.hovered == Just option then
+             else if optionsMatch dropdown.hovered then
                 List.append
                     [ Background.color grey
                     , El.padding 5
@@ -1829,7 +2026,13 @@ optionView (Dropdown dropdown) (( index, label_, _ ) as option) =
                     dropdown.optionAttributes
             )
         )
-        (El.text label_)
+        (case option of
+            Option ( _, label_, _ ) ->
+                El.text label_
+
+            Element ( _, element, _ ) ->
+                element
+        )
 
 
 type alias PaddingEach =
