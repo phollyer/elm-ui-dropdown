@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - nothing.
 
+## [2.2.2] - 2022-01-27
+
+### Fixed
+
+- the `reset` function now resets the text if the `InputType` is set to `TextField`.
+
 ## [2.2.1] - 2021-07-21
 
 ### Fixed
@@ -176,7 +182,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial Commit.
 
-[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.2.1...HEAD
+[unreleased]: https://github.com/phollyer/elm-ui-dropdown/compare/2.2.2...HEAD
+[2.2.2]: https://github.com/phollyer/elm-ui-dropdown/compare/2.2.1...2.2.2
 [2.2.1]: https://github.com/phollyer/elm-ui-dropdown/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.3...2.2.0
 [2.1.3]: https://github.com/phollyer/elm-ui-dropdown/compare/2.1.2...2.1.3

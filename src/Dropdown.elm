@@ -469,7 +469,9 @@ floatOptions options_ =
 
 {-| Reset the dropdown.
 
-The selected option will be set to `Nothing`.
+The selected option will be set to `Nothing`, and any text in the `TextField`
+[InputType](#InputType) will be removed.
+
 The list of options will be reset to the last full list of options supplied
 if any options have been programmatically removed.
 
@@ -479,6 +481,7 @@ reset (Dropdown dropdown) =
     Dropdown
         { dropdown
             | selected = Nothing
+            , text = ""
             , options = dropdown.optionsCache
         }
 
