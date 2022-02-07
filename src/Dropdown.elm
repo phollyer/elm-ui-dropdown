@@ -4,6 +4,7 @@ module Dropdown exposing
     , optionsBy, options, stringOptions, intOptions, floatOptions, Option(..), elementOptions, reset
     , label, labelHidden, buttonLabel
     , placeholder
+    , defaultClearButton, clearButton
     , Placement(..)
     , labelPlacement, labelSpacing
     , menuPlacement, menuSpacing
@@ -77,6 +78,13 @@ will appear.
 ### Placeholder
 
 @docs placeholder
+
+
+### Clear Button
+
+This can be added to a `TextField` `InputType` in order to clear the text field.
+
+@docs defaultClearButton, clearButton
 
 
 ### Positioning
@@ -197,6 +205,7 @@ type Dropdown option
         , optionHoverAttributes : List (Attribute (Msg option))
         , optionSelectedAttributes : List (Attribute (Msg option))
         , text : String
+        , clearBtn : Maybe (Element (Msg option))
         , selected : Maybe (Option option)
         , hovered : Maybe (Option option)
         , gotFocus : Bool
@@ -256,6 +265,7 @@ init =
         , optionHoverAttributes = []
         , optionSelectedAttributes = []
         , text = ""
+        , clearBtn = Nothing
         , selected = Nothing
         , hovered = Nothing
         , gotFocus = False
@@ -497,6 +507,7 @@ reset (Dropdown dropdown) =
     Dropdown
         { dropdown
             | selected = Nothing
+            , text = ""
             , options = dropdown.optionsCache
         }
 
@@ -653,6 +664,27 @@ The default is `Nothing`.
 placeholder : Maybe (Placeholder (Msg option)) -> Dropdown option -> Dropdown option
 placeholder maybePlaceholder (Dropdown dropdown) =
     Dropdown { dropdown | placeholder = maybePlaceholder }
+
+
+{-| Provide the
+[Placeholder](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/Element-Input#Placeholder)
+for the text field if [TextField](#InputType) is the [InputType](#InputType).
+
+The default is `Nothing`.
+
+-}
+clearButton : Maybe (Element (Msg option)) -> Dropdown option -> Dropdown option
+clearButton btnElement (Dropdown dropdown) =
+    Dropdown { dropdown | clearBtn = btnElement }
+
+
+{-| A default [clearButton](#clearButton).
+-}
+defaultClearButton : Maybe (Element (Msg option))
+defaultClearButton =
+    Just <|
+        El.text <|
+            String.fromChar '✘'
 
 
 {-| The max height for the dropdown, the default is 150.
@@ -1080,15 +1112,6 @@ toOptionId index id_ =
 
 {-| Pattern match on this type in your `update` function to determine the event
 that occured.
-
-  - `Selected (Int, String, option)`
-      - `Int` is the index of the option in the menu
-      - `String` is the label of the option displayed in the menu
-      - `option` is the `option`.
-
-  - `TextChanged String`
-      - `String` is the text entered by the user.
-
 -}
 type OutMsg option
     = NoOp
@@ -1098,6 +1121,7 @@ type OutMsg option
     | FocusOut
     | Opened
     | Closed
+    | Cleared
 
 
 {-| This is an opaque type, pattern match on [OutMsg](#OutMsg).
@@ -1116,6 +1140,7 @@ type Msg option
     | OnMouseEnterOption (Option option)
     | OnChange String
     | BtnLabelFocus
+    | GotClearText
     | GotFocus (Result Dom.Error ())
     | BtnClick Bool
     | OnFocus
@@ -1299,6 +1324,16 @@ update msg (Dropdown dropdown) =
             , Task.attempt GotFocus <|
                 Dom.focus (dropdown.id ++ "-button")
             , NoOp
+            )
+
+        GotClearText ->
+            ( Dropdown
+                { dropdown
+                    | selected = Nothing
+                    , text = ""
+                }
+            , Cmd.none
+            , Cleared
             )
 
         GotFocus _ ->
@@ -1756,21 +1791,47 @@ view toMsg (Dropdown dropdown) =
             else
                 El.none
 
-        attrs id_ =
-            List.append
-                [ Background.color white
-                , Border.color black
-                , Border.width 1
-                , Border.rounded 5
-                , El.htmlAttribute <|
-                    Attr.id (dropdown.id ++ "-" ++ id_)
-                , El.padding 5
-                , Event.onFocus OnFocus
-                , Event.onLoseFocus OnLoseFocus
-                , Font.color black
-                , onKeyDown OnKeyDown
-                ]
-                dropdown.inputAttributes
+        attrs =
+            [ Background.color white
+            , Border.color black
+            , Border.width 1
+            , Border.rounded 5
+            , El.padding 5
+            , Event.onFocus OnFocus
+            , Event.onLoseFocus OnLoseFocus
+            , Font.color black
+            , onKeyDown OnKeyDown
+            ]
+                ++ (case dropdown.inputType of
+                        TextField ->
+                            [ El.htmlAttribute <|
+                                Attr.id (dropdown.id ++ "-textfield")
+                            , El.inFront <|
+                                case ( dropdown.text, dropdown.clearBtn ) of
+                                    ( "", _ ) ->
+                                        El.none
+
+                                    ( _, Nothing ) ->
+                                        El.none
+
+                                    ( _, Just clearBtn ) ->
+                                        El.el
+                                            [ Cursor.pointer
+                                            , El.alignRight
+                                            , El.alignBottom
+                                            , El.paddingXY 5 0
+                                            , Event.onClick GotClearText
+                                            ]
+                                        <|
+                                            clearBtn
+                            ]
+
+                        Button ->
+                            [ El.htmlAttribute <|
+                                Attr.id (dropdown.id ++ "-button")
+                            ]
+                   )
+                ++ dropdown.inputAttributes
 
         labelPadding =
             El.paddingEach <|
@@ -1811,7 +1872,7 @@ view toMsg (Dropdown dropdown) =
         (case dropdown.inputType of
             TextField ->
                 Input.text
-                    (attrs "textfield")
+                    attrs
                     { text = dropdown.text
                     , onChange = OnChange
                     , placeholder = dropdown.placeholder
@@ -1853,7 +1914,7 @@ view toMsg (Dropdown dropdown) =
                              , El.htmlAttribute <|
                                 Touch.onEnd (\_ -> OnTouchButtonEnd)
                              ]
-                                ++ attrs "button"
+                                ++ attrs
                             )
                             { onPress =
                                 if dropdown.gotFocus then
