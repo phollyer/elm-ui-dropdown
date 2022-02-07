@@ -6,7 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [unreleased]
 
-- nothing.
+- enable the use of an `Element` as a menu label.
+- provide the ability to add a clear button to the TextField. This is useful if using a filter to filter the options, so that the user can reset the `TextField` and options list.
 
 ## [2.2.2] - 2022-01-27
 
